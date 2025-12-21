@@ -1,0 +1,19 @@
+
+build/
+# Local configuration
+.idea/
+.DS_Store
+local.properties
+# Keystore files
+*.jks
+*.keystore
+# Crashlytics
+com_crashlytics_export_strings.xml
+# Captures
+.cxx/
+*.hprof
+# Android Studio
+captures/
+.externalNativeBuild/
+# google services
+google-services.json
