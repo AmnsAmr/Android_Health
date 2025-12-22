@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tableau de Bord Admin"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:id="@+id/statsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chargement des statistiques..."
+        android:textSize="16sp"
+        android:background="@android:color/white"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/manageUsersBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gérer les Utilisateurs"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/managePatientsBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gérer les Patients"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/viewTablesBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Voir Tables DB"
+        android:textSize="18sp" />
+
+</LinearLayout>

@@ -1,0 +1,177 @@
+Below is a **solid SQLite schema** that directly maps to your app features and roles. It’s **Android-friendly**, normalized, and realistic for a student or real project. No fluff.
+
+---
+
+## core idea
+
+One **users** table with roles, then role-specific data split where needed. Medical data is protected by structure (secretary never touches medical tables).
+
+---
+
+## users & roles
+
+```sql
+create table users (
+    id integer primary key autoincrement,
+    full_name text not null,
+    email text unique not null,
+    password_hash text not null,
+    role text check (role in ('patient','doctor','admin','secretary')) not null,
+    phone text,
+    created_at datetime default current_timestamp
+);
+```
+
+---
+
+## patient profile (medical identity)
+
+```sql
+create table patients (
+    user_id integer primary key,
+    date_of_birth date,
+    gender text,
+    blood_type text,
+    emergency_contact text,
+    foreign key (user_id) references users(id) on delete cascade
+);
+```
+
+---
+
+## doctor profile
+
+```sql
+create table doctors (
+    user_id integer primary key,
+    specialization text,
+    license_number text unique,
+    foreign key (user_id) references users(id) on delete cascade
+);
+```
+
+---
+
+## appointments (managed by patient / doctor / secretary)
+
+```sql
+create table appointments (
+    id integer primary key autoincrement,
+    patient_id integer not null,
+    doctor_id integer not null,
+    appointment_datetime datetime not null,
+    status text check (status in ('scheduled','cancelled','completed')) default 'scheduled',
+    notes text,
+    created_by text check (created_by in ('patient','secretary','doctor')),
+    foreign key (patient_id) references users(id),
+    foreign key (doctor_id) references users(id)
+);
+```
+
+---
+
+## medical records (doctor only)
+
+```sql
+create table medical_records (
+    id integer primary key autoincrement,
+    patient_id integer not null,
+    doctor_id integer not null,
+    diagnosis text,
+    treatment text,
+    created_at datetime default current_timestamp,
+    foreign key (patient_id) references users(id),
+    foreign key (doctor_id) references users(id)
+);
+```
+
+---
+
+## test results
+
+```sql
+create table test_results (
+    id integer primary key autoincrement,
+    patient_id integer not null,
+    doctor_id integer not null,
+    test_name text,
+    result text,
+    test_date date,
+    foreign key (patient_id) references users(id),
+    foreign key (doctor_id) references users(id)
+);
+```
+
+---
+
+## prescriptions + refill requests
+
+```sql
+create table prescriptions (
+    id integer primary key autoincrement,
+    patient_id integer not null,
+    doctor_id integer not null,
+    medication text not null,
+    dosage text,
+    instructions text,
+    created_at datetime default current_timestamp,
+    foreign key (patient_id) references users(id),
+    foreign key (doctor_id) references users(id)
+);
+```
+
+```sql
+create table prescription_refill_requests (
+    id integer primary key autoincrement,
+    prescription_id integer not null,
+    status text check (status in ('pending','approved','rejected')) default 'pending',
+    requested_at datetime default current_timestamp,
+    foreign key (prescription_id) references prescriptions(id)
+);
+```
+
+---
+
+## messaging (patient ↔ doctor, secretary → doctor)
+
+```sql
+create table messages (
+    id integer primary key autoincrement,
+    sender_id integer not null,
+    receiver_id integer not null,
+    message text not null,
+    is_urgent integer default 0,
+    sent_at datetime default current_timestamp,
+    foreign key (sender_id) references users(id),
+    foreign key (receiver_id) references users(id)
+);
+```
+
+---
+
+## notifications
+
+```sql
+create table notifications (
+    id integer primary key autoincrement,
+    user_id integer not null,
+    content text not null,
+    is_read integer default 0,
+    created_at datetime default current_timestamp,
+    foreign key (user_id) references users(id)
+);
+```
+
+---
+
+## permissions (admin control)
+
+```sql
+create table permissions (
+    id integer primary key autoincrement,
+    role text not null,
+    permission text not null
+);
+```
+
+---
