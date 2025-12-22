@@ -12,6 +12,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Health">
         <activity
+            android:name=".MedecinRecordsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MedecinResultsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MedecinMessagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MedecinLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MedecinAppointmentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MedecinHomeActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
