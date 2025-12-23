@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,8 +20,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         statsText = findViewById(R.id.statsText);
 
-        Button manageUsersBtn = findViewById(R.id.manageUsersBtn);
-        Button managePatientsBtn = findViewById(R.id.managePatientsBtn);
+        LinearLayout manageUsersBtn = findViewById(R.id.manageUsersBtn);
+        LinearLayout managePatientsBtn = findViewById(R.id.managePatientsBtn);
 
         manageUsersBtn.setOnClickListener(v -> 
             startActivity(new Intent(this, ManageUsersActivity.class)));
@@ -29,7 +29,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         managePatientsBtn.setOnClickListener(v -> 
             startActivity(new Intent(this, ManagePatientsActivity.class)));
 
-        Button viewTablesBtn = findViewById(R.id.viewTablesBtn);
+        LinearLayout viewTablesBtn = findViewById(R.id.viewTablesBtn);
         viewTablesBtn.setOnClickListener(v -> 
             startActivity(new Intent(this, ViewTablesActivity.class)));
 

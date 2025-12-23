@@ -4,4 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="my_error_red">#B00020</color>
     <color name="Grey">#808080</color>
+    <color name="primary_blue">#2196F3</color>
+    <color name="light_background">#F2F5F9</color>
 </resources>

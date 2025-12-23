@@ -25,7 +25,7 @@ public class ManageUsersActivity extends AppCompatActivity {
         usersListView = findViewById(R.id.usersListView);
         users = new ArrayList<>();
 
-        Button addUserBtn = findViewById(R.id.addUserBtn);
+        LinearLayout addUserBtn = findViewById(R.id.addUserBtn);
         addUserBtn.setOnClickListener(v -> showAddUserDialog());
 
         usersListView.setOnItemClickListener((parent, view, position, id) -> 
