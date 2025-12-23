@@ -44,6 +44,21 @@
             android:name=".ViewTablesActivity"
             android:exported="false" />
         <activity
+            android:name=".DoctorDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorPatientsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorAppointmentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorMedicalRecordsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorPrescriptionsActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

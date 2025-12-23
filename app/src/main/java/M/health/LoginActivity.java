@@ -64,14 +64,12 @@ public class LoginActivity extends AppCompatActivity {
                 case "patient":
                     intent = new Intent(this, PatientDashboardActivity.class);
                     break;
-//                case "doctor":
-//                    //intent = new Intent(this, DoctorDashboardActivity.class);
-//                    break;
-//                case "secretary":
-//                    //intent = new Intent(this, SecretaryDashboardActivity.class);
-//                    break;
+                case "doctor":
+                    intent = new Intent(this, DoctorDashboardActivity.class);
+                    intent.putExtra("user_id", userId);
+                    break;
                 default:
-                    Toast.makeText(this, "Rôle non reconnu", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Rôle inconnu", Toast.LENGTH_SHORT).show();
                     return;
             }
             startActivity(intent);
