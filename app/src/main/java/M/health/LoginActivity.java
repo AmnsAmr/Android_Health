@@ -68,6 +68,10 @@ public class LoginActivity extends AppCompatActivity {
                     intent = new Intent(this, DoctorDashboardActivity.class);
                     intent.putExtra("user_id", userId);
                     break;
+                case "secretary":
+                    intent = new Intent(this, SecretaryDashboardActivity.class);
+                    intent.putExtra("user_id", userId);
+                    break;
                 default:
                     Toast.makeText(this, "Rôle inconnu", Toast.LENGTH_SHORT).show();
                     return;

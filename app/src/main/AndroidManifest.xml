@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Health">
         <activity
+            android:name=".SecretaryDashboardActivity"
+            android:exported="false" />
+        <activity
             android:name=".book_appointment"
             android:exported="false" />
         <activity
