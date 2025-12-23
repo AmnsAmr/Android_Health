@@ -1,6 +1,7 @@
 package M.health;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,6 +23,10 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private TextView tvPatientName, tvPatientId;
     private TextView tvNextApptDoctor, tvNextApptSpecialty, tvNextApptDate;
     private LinearLayout cardNextAppointment;
+    private LinearLayout cardRdv;
+    private LinearLayout cardDossier;
+    private LinearLayout cardMeds;
+    private LinearLayout cardMessages;
     private Button btnEditRdv;
 
     @Override
@@ -32,7 +37,27 @@ public class PatientDashboardActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         prefs = getSharedPreferences("user_session", MODE_PRIVATE);
 
+        // Retrieve current User ID from session
+        int userId = prefs.getInt("user_id", -1);
+
+        if (userId == -1) {
+            Toast.makeText(this, "Erreur: Session expirée", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // Bind Views
+        initializeViews();
+
+        // Load Data
+        loadPatientInfo(userId);
+        loadNextAppointment(userId);
+
+        // Setup Navigation
+        setupNavigation();
+    }
+
+    private void initializeViews() {
         tvPatientName = findViewById(R.id.tvPatientName);
         tvPatientId = findViewById(R.id.tvPatientId);
         tvNextApptDoctor = findViewById(R.id.tvNextApptDoctor);
@@ -41,25 +66,76 @@ public class PatientDashboardActivity extends AppCompatActivity {
         cardNextAppointment = findViewById(R.id.cardRdvDoctor);
         btnEditRdv = findViewById(R.id.btnEditRdv);
 
-        // Retrieve current User ID from session
-        int userId = prefs.getInt("user_id", -1);
+        // Cartes de navigation
+        cardRdv = findViewById(R.id.cardRdv);
+        cardDossier = findViewById(R.id.cardDossier);
+        cardMeds = findViewById(R.id.cardMeds);
+        cardMessages = findViewById(R.id.cardMessages);
+    }
 
-        if (userId == -1) {
-            Toast.makeText(this, "Erreur: Session expirée", Toast.LENGTH_SHORT).show();
-            finish(); // Close activity to prevent crash
-            return;
+    private void setupNavigation() {
+        // Navigation vers Rendez-vous
+        if (cardRdv != null) {
+            cardRdv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
+                    startActivity(intent);
+                }
+            });
         }
 
-        // Load Data
-        loadPatientInfo(userId);
-        loadNextAppointment(userId);
+        // Navigation vers Dossier Médical
+        if (cardDossier != null) {
+            cardDossier.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(PatientDashboardActivity.this, page_dossier_medical.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        // Navigation vers Médicaments
+        if (cardMeds != null) {
+            cardMeds.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(PatientDashboardActivity.this, page_medicament.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        // Navigation vers Messages
+        if (cardMessages != null) {
+            cardMessages.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(PatientDashboardActivity.this, page_message.class);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        // Bouton Modifier rendez-vous
+        if (btnEditRdv != null) {
+            btnEditRdv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
+                    startActivity(intent);
+                }
+            });
+        }
     }
 
     private void loadPatientInfo(int userId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("SELECT full_name FROM users WHERE id = ?", new String[]{String.valueOf(userId)});
+            cursor = db.rawQuery("SELECT full_name FROM users WHERE id = ?",
+                    new String[]{String.valueOf(userId)});
             if (cursor.moveToFirst()) {
                 String name = cursor.getString(0);
                 tvPatientName.setText(name);
@@ -78,8 +154,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         Cursor cursor = null;
 
         try {
-            // JOIN query: Get Appointment Date + Doctor's Name (from users) + Specialization (from doctors)
-            // Filtering by status 'scheduled' and limiting to 1 result
             String query = "SELECT u.full_name, d.specialization, a.appointment_datetime " +
                     "FROM appointments a " +
                     "JOIN users u ON a.doctor_id = u.id " +
@@ -90,7 +164,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
             cursor = db.rawQuery(query, new String[]{String.valueOf(patientId)});
 
             if (cursor.moveToFirst()) {
-                // If data exists, show it
                 String doctorName = cursor.getString(0);
                 String specialization = cursor.getString(1);
                 String date = cursor.getString(2);
@@ -99,14 +172,14 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 tvNextApptSpecialty.setText(specialization);
                 tvNextApptDate.setText(date);
 
-                // Ensure card is visible
                 cardNextAppointment.setVisibility(View.VISIBLE);
             } else {
-                // No appointments found: Hide the card or show "No Appointments"
                 tvNextApptDoctor.setText("Aucun rendez-vous");
                 tvNextApptSpecialty.setText("");
                 tvNextApptDate.setText("");
-                btnEditRdv.setVisibility(View.GONE);
+                if (btnEditRdv != null) {
+                    btnEditRdv.setVisibility(View.GONE);
+                }
             }
 
         } catch (Exception e) {
@@ -114,6 +187,15 @@ public class PatientDashboardActivity extends AppCompatActivity {
             Toast.makeText(this, "Erreur chargement RDV", Toast.LENGTH_SHORT).show();
         } finally {
             if (cursor != null) cursor.close();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        int userId = prefs.getInt("user_id", -1);
+        if (userId != -1) {
+            loadNextAppointment(userId);
         }
     }
 }

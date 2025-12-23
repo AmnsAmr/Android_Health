@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "M.health"
-    compileSdk = 31
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "M.health"
-        minSdk = 21
-        targetSdk = 31
+        minSdk = 23
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -37,4 +37,7 @@ android {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.4.2")
+    implementation(libs.material)
+    implementation(libs.activity)
+    implementation(libs.constraintlayout)
 }
