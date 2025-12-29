@@ -33,7 +33,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gestion des Patients"
+                    android:text="Prescriptions"
                     android:textColor="@android:color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -41,7 +41,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dossiers et informations médicales"
+                    android:text="Ordonnances &amp; renouvellements"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -57,11 +57,61 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp">
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="16dp"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Demandes de Renouvellement"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/refillRequestsText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chargement..."
+                android:textSize="14sp"
+                android:textColor="@color/Grey"
+                android:minHeight="80dp" />
 
             <LinearLayout
-                android:id="@+id/addPatientBtn"
+                android:id="@+id/manageRefillsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/primary_blue"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gérer les Demandes"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:id="@+id/addPrescriptionBtn"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
@@ -83,14 +133,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nouveau"
+                    android:text="Nouvelle"
                     android:textColor="@color/primary_blue"
                     android:textStyle="bold"
                     android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/searchPatientBtn"
+                android:id="@+id/searchPrescriptionBtn"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
@@ -149,7 +199,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.5"
-                    android:text="Groupe Sanguin"
+                    android:text="Médicament"
                     android:textColor="@color/black"
                     android:textStyle="bold"
                     android:textSize="14sp" />
@@ -166,9 +216,9 @@
             </LinearLayout>
 
             <ListView
-                android:id="@+id/patientsListView"
+                android:id="@+id/prescriptionsListView"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
+                android:layout_height="300dp"
                 android:divider="@color/light_background"
                 android:dividerHeight="1dp"
                 android:padding="8dp" />
@@ -188,7 +238,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Statistiques des Patients"
+                android:text="Statistiques Prescriptions"
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="16sp"
@@ -209,7 +259,7 @@
                     android:layout_marginEnd="8dp">
 
                     <TextView
-                        android:id="@+id/totalPatientsText"
+                        android:id="@+id/totalPrescriptionsText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -220,7 +270,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Total Patients"
+                        android:text="Total"
                         android:textColor="@color/Grey"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -235,7 +285,7 @@
                     android:layout_marginStart="8dp">
 
                     <TextView
-                        android:id="@+id/appointmentsCountText"
+                        android:id="@+id/pendingRefillsText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -246,7 +296,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rendez-vous"
+                        android:text="En Attente"
                         android:textColor="@color/Grey"
                         android:textSize="12sp" />
                 </LinearLayout>

@@ -33,7 +33,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tables Base de Données"
+                    android:text="Mes Rendez-vous"
                     android:textColor="@android:color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -41,7 +41,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Visualisation des données"
+                    android:text="Planning des consultations"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -60,26 +60,23 @@
             android:orientation="vertical"
             android:background="@android:color/white"
             android:elevation="2dp"
-            android:layout_margin="16dp"
-            android:padding="16dp">
+            android:layout_margin="16dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Contenu des Tables"
+                android:text="Liste des Rendez-vous"
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="16sp"
-                android:layout_marginBottom="12dp" />
+                android:padding="16dp"
+                android:paddingBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tablesText"
+            <ListView
+                android:id="@+id/appointmentsListView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="monospace"
-                android:text="Loading tables..."
-                android:textSize="12sp"
-                android:textColor="@color/black" />
+                android:layout_height="400dp"
+                android:padding="8dp" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

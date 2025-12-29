@@ -33,7 +33,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gestion des Patients"
+                    android:text="Mes Patients"
                     android:textColor="@android:color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -41,7 +41,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dossiers et informations médicales"
+                    android:text="Dossiers médicaux &amp; suivi"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -61,7 +61,7 @@
             android:padding="16dp">
 
             <LinearLayout
-                android:id="@+id/addPatientBtn"
+                android:id="@+id/addTestResultBtn"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_weight="1"
@@ -83,7 +83,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nouveau"
+                    android:text="Résultat Test"
                     android:textColor="@color/primary_blue"
                     android:textStyle="bold"
                     android:textSize="14sp" />
@@ -188,7 +188,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Statistiques des Patients"
+                android:text="Statistiques Patients"
                 android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="16sp"
@@ -220,7 +220,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Total Patients"
+                        android:text="Mes Patients"
                         android:textColor="@color/Grey"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -235,7 +235,7 @@
                     android:layout_marginStart="8dp">
 
                     <TextView
-                        android:id="@+id/appointmentsCountText"
+                        android:id="@+id/recordsCountText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -246,7 +246,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rendez-vous"
+                        android:text="Dossiers"
                         android:textColor="@color/Grey"
                         android:textSize="12sp" />
                 </LinearLayout>
