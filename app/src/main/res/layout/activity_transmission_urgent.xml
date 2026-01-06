@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/title_urgent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alerte Message Urgent"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Destinataire (Médecin) :"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinner_dest_medecin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp" />
+
+        <EditText
+            android:id="@+id/et_objet_urgent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Objet de l'urgence"
+            android:layout_marginBottom="10dp"/>
+
+        <EditText
+            android:id="@+id/et_corps_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Détails du message..."
+            android:lines="5"
+            android:gravity="top"
+            android:layout_marginBottom="20dp"/>
+
+        <Button
+            android:id="@+id/btn_envoyer_urgent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Transmettre Immédiatement"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_retour_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Retour au menu"
+        android:layout_alignParentBottom="true"
+        android:backgroundTint="#87CEEB"
+        android:textColor="@android:color/black" />
+</RelativeLayout>

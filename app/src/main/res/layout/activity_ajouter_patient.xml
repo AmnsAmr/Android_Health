@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btn_retour_menu"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ajouter un Nouveau Patient"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_gravity="center"
+                android:layout_marginBottom="30dp" />
+
+            <EditText android:id="@+id/et_nom" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nom" android:inputType="textPersonName" android:layout_marginBottom="15dp" />
+            <EditText android:id="@+id/et_prenom" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Prénom" android:inputType="textPersonName" android:layout_marginBottom="15dp" />
+            <EditText android:id="@+id/et_date_naissance" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Date de naissance (JJ/MM/AAAA)" android:inputType="date" android:layout_marginBottom="15dp" />
+            <EditText android:id="@+id/et_telephone" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Numéro de téléphone" android:inputType="phone" android:layout_marginBottom="15dp" />
+            <EditText android:id="@+id/et_adresse" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Adresse complète" android:inputType="textPostalAddress" android:layout_marginBottom="30dp" />
+
+            <Button
+                android:id="@+id/btn_enregistrer_patient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enregistrer le patient"
+                android:backgroundTint="#87CEEB"
+                android:textColor="@android:color/black"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btn_retour_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Retour au menu"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:backgroundTint="#87CEEB"
+        android:textColor="@android:color/black" />
+
+</RelativeLayout>

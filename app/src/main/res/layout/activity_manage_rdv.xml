@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/rdv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gestion des Rendez-vous"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+
+        <Button
+            android:id="@+id/btn_creer_rdv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Créer un nouveau Rendez-vous"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_modifier_annuler_rdv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modifier ou Annuler un Rendez-vous"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_confirmer_rdv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Confirmer les Rendez-vous en attente"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_consulter_liste_rdv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Consulter la liste de tous les Rendez-vous"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_retour_menu_rdv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RETOUR AU MENU"
+        android:backgroundTint="#87CEEB"
+        android:textColor="@android:color/black"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp" />
+
+</RelativeLayout>

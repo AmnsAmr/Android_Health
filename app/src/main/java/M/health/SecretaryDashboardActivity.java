@@ -24,18 +24,22 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Initialize the button from the XML
-        Button btnManagePatients = findViewById(R.id.btn_nav_acces_patients);
-
-        // Set the click listener
-        btnManagePatients.setOnClickListener(v -> {
-            Intent intent = new Intent(SecretaryDashboardActivity.this, ManagePatientsActivity.class);
-            //
-            // We pass the role "secretary" to the next activity
-            intent.putExtra("USER_ROLE", "secretary");
+        Button btnManageRdv = findViewById(R.id.btn_gerer_rdv);
+        btnManageRdv.setOnClickListener(v -> {
+            Intent intent = new Intent(SecretaryDashboardActivity.this, ManageRdvActivity.class);
             startActivity(intent);
         });
 
-        // You can add listeners for other buttons (btn_nav_gestion_rdv, etc.) here later
+        Button btnManagePatients = findViewById(R.id.btn_gerer_profils);
+        btnManagePatients.setOnClickListener(v -> {
+            Intent intent = new Intent(SecretaryDashboardActivity.this, UpdateDossierPatientActivity.class);
+            startActivity(intent);
+        });
+
+        Button btnCoordination = findViewById(R.id.btn_coordination);
+        btnCoordination.setOnClickListener(v -> {
+            Intent intent = new Intent(SecretaryDashboardActivity.this, CoordinationMedecinActivity.class);
+            startActivity(intent);
+        });
     }
 }
