@@ -48,6 +48,10 @@ public class page_dossier_medical extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         patientId = currentUser.id;
 
+        // Setup reusable header
+        View headerView = findViewById(R.id.headerLayout);
+        UIHelper.setupHeader(this, headerView, "Dossier Médical");
+
         initializeViews();
         loadPatientData();
         setupClickListeners();

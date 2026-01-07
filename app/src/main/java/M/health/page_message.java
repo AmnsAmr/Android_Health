@@ -49,6 +49,10 @@ public class page_message extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         int userId = currentUser.id;
 
+        // Setup reusable header
+        View headerView = findViewById(R.id.headerLayout);
+        UIHelper.setupHeader(this, headerView, "Messages");
+
         // Initialize Views
         initializeViews();
 

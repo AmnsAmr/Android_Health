@@ -19,7 +19,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private AuthManager authManager;
 
     // UI Components
-    private TextView tvPatientName, tvPatientId;
     private TextView tvNextApptDoctor, tvNextApptSpecialty, tvNextApptDate;
     private LinearLayout cardNextAppointment;
     private LinearLayout cardRdv;
@@ -50,11 +49,14 @@ public class PatientDashboardActivity extends AppCompatActivity {
             return;
         }
 
+        // Setup reusable user profile header
+        View userProfileHeader = findViewById(R.id.userProfileHeader);
+        UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
+
         // Bind Views
         initializeViews();
 
         // Load Data
-        loadPatientInfo(currentUser.id);
         loadNextAppointment(currentUser.id);
 
         // Setup Navigation
@@ -62,8 +64,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        tvPatientName = findViewById(R.id.tvPatientName);
-        tvPatientId = findViewById(R.id.tvPatientId);
         tvNextApptDoctor = findViewById(R.id.tvNextApptDoctor);
         tvNextApptSpecialty = findViewById(R.id.tvNextApptSpecialty);
         tvNextApptDate = findViewById(R.id.tvNextApptDate);
@@ -154,23 +154,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
     }
 
-    private void loadPatientInfo(int userId) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery("SELECT full_name FROM users WHERE id = ?",
-                    new String[]{String.valueOf(userId)});
-            if (cursor.moveToFirst()) {
-                String name = cursor.getString(0);
-                tvPatientName.setText(name);
-                tvPatientId.setText("ID: " + userId);
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, "Erreur chargement profil", Toast.LENGTH_SHORT).show();
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-    }
+
 
     @SuppressLint("SetTextI18n")
     private void loadNextAppointment(int patientId) {
