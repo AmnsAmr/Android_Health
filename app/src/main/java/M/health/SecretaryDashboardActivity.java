@@ -3,6 +3,7 @@ package M.health;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,11 +13,28 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class SecretaryDashboardActivity extends AppCompatActivity {
 
+    private AuthManager authManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_secretary_dashboard);
+
+        authManager = AuthManager.getInstance(this);
+
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        if (!authManager.hasPermission("secretary_view_patient_list")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.secretaire_title), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -29,11 +47,13 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
 
         // Set the click listener
         btnManagePatients.setOnClickListener(v -> {
-            Intent intent = new Intent(SecretaryDashboardActivity.this, ManagePatientsActivity.class);
-            //
-            // We pass the role "secretary" to the next activity
-            intent.putExtra("USER_ROLE", "secretary");
-            startActivity(intent);
+            if (authManager.hasPermission("secretary_view_patient_list")) {
+                Intent intent = new Intent(SecretaryDashboardActivity.this, ManagePatientsActivity.class);
+                intent.putExtra("USER_ROLE", "secretary");
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
         });
 
         // You can add listeners for other buttons (btn_nav_gestion_rdv, etc.) here later

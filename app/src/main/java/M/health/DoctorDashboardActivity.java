@@ -6,10 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class DoctorDashboardActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager;
     private TextView doctorNameText, doctorSpecialtyText, statsText;
     private int doctorId;
 
@@ -19,7 +21,21 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_doctor_dashboard);
 
         dbHelper = new DatabaseHelper(this);
+        authManager = AuthManager.getInstance(this);
         doctorId = getIntent().getIntExtra("user_id", -1);
+
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        if (!authManager.hasPermission("doctor_view_patients")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         doctorNameText = findViewById(R.id.tvDoctorName);
         doctorSpecialtyText = findViewById(R.id.tvDoctorSpecialty);
@@ -30,21 +46,41 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         LinearLayout cardMedicalRecords = findViewById(R.id.cardMedicalRecords);
         LinearLayout cardPrescriptions = findViewById(R.id.cardPrescriptions);
 
-        cardPatients.setOnClickListener(v -> 
-            startActivity(new Intent(this, DoctorPatientsActivity.class)
-                .putExtra("doctor_id", doctorId)));
+        cardPatients.setOnClickListener(v -> {
+            if (authManager.hasPermission("doctor_view_patients")) {
+                startActivity(new Intent(this, DoctorPatientsActivity.class)
+                    .putExtra("doctor_id", doctorId));
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        cardAppointments.setOnClickListener(v -> 
-            startActivity(new Intent(this, DoctorAppointmentsActivity.class)
-                .putExtra("doctor_id", doctorId)));
+        cardAppointments.setOnClickListener(v -> {
+            if (authManager.hasPermission("doctor_manage_appointments")) {
+                startActivity(new Intent(this, DoctorAppointmentsActivity.class)
+                    .putExtra("doctor_id", doctorId));
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        cardMedicalRecords.setOnClickListener(v -> 
-            startActivity(new Intent(this, DoctorMedicalRecordsActivity.class)
-                .putExtra("doctor_id", doctorId)));
+        cardMedicalRecords.setOnClickListener(v -> {
+            if (authManager.hasPermission("doctor_access_medical_records")) {
+                startActivity(new Intent(this, DoctorMedicalRecordsActivity.class)
+                    .putExtra("doctor_id", doctorId));
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        cardPrescriptions.setOnClickListener(v -> 
-            startActivity(new Intent(this, DoctorPrescriptionsActivity.class)
-                .putExtra("doctor_id", doctorId)));
+        cardPrescriptions.setOnClickListener(v -> {
+            if (authManager.hasPermission("doctor_prescribe_medication")) {
+                startActivity(new Intent(this, DoctorPrescriptionsActivity.class)
+                    .putExtra("doctor_id", doctorId));
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         loadDoctorInfo();
         loadStats();

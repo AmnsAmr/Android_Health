@@ -2,7 +2,7 @@ package M.health;
 
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -24,7 +24,7 @@ import java.util.Locale;
 public class book_appointment extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
-    private SharedPreferences prefs;
+    private AuthManager authManager;
 
     private Spinner spinnerDoctors;
     private EditText etDate, etReason;
@@ -41,15 +41,24 @@ public class book_appointment extends AppCompatActivity {
         setContentView(R.layout.activity_book_appointment);
 
         dbHelper = new DatabaseHelper(this);
-        prefs = getSharedPreferences("user_session", MODE_PRIVATE);
-        patientId = prefs.getInt("user_id", -1);
+        authManager = AuthManager.getInstance(this);
         calendar = Calendar.getInstance();
 
-        if (patientId == -1) {
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
             Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
+
+        if (!authManager.hasPermission("patient_book_appointments")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        patientId = currentUser.id;
 
         initializeViews();
         loadDoctors();

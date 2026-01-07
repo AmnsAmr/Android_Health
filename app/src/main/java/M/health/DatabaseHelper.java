@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "health_app.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -14,15 +14,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Users table
+        // Roles table
+        db.execSQL("CREATE TABLE roles (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "name TEXT UNIQUE NOT NULL," +
+                "description TEXT," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+
+        // Users table (extended)
         db.execSQL("CREATE TABLE users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "full_name TEXT NOT NULL," +
                 "email TEXT UNIQUE NOT NULL," +
                 "password_hash TEXT NOT NULL," +
                 "role TEXT CHECK (role IN ('patient','doctor','admin','secretary')) NOT NULL," +
+                "role_id INTEGER," +
+                "is_active INTEGER DEFAULT 1," +
+                "last_login DATETIME," +
                 "phone TEXT," +
-                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "FOREIGN KEY (role_id) REFERENCES roles(id))");
 
         // Patients table
         db.execSQL("CREATE TABLE patients (" +
@@ -114,30 +126,90 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
                 "FOREIGN KEY (user_id) REFERENCES users(id))");
 
-        // Permissions table
+        // Permissions table (extended)
         db.execSQL("CREATE TABLE permissions (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "role TEXT NOT NULL," +
-                "permission TEXT NOT NULL)");
+                "permission TEXT NOT NULL," +
+                "permission_key TEXT UNIQUE," +
+                "category TEXT," +
+                "role_required INTEGER DEFAULT 0)");
+
+        // Insert default roles
+        db.execSQL("INSERT INTO roles (name, description) VALUES " +
+                "('admin', 'Administrator with full access')," +
+                "('doctor', 'Medical doctor with patient access')," +
+                "('patient', 'Patient with limited access')," +
+                "('secretary', 'Secretary with administrative access')");
+
+        // Insert default permissions
+        db.execSQL("INSERT INTO permissions (role, permission, permission_key, category, role_required) VALUES " +
+                "('admin', 'Manage Users', 'admin_manage_users', 'administration', 1)," +
+                "('admin', 'Manage Patients', 'admin_manage_patients', 'administration', 1)," +
+                "('admin', 'View All Data', 'admin_view_all_data', 'administration', 1)," +
+                "('doctor', 'View Patients', 'doctor_view_patients', 'medical', 1)," +
+                "('doctor', 'Manage Appointments', 'doctor_manage_appointments', 'medical', 1)," +
+                "('doctor', 'Access Medical Records', 'doctor_access_medical_records', 'medical', 1)," +
+                "('doctor', 'Prescribe Medication', 'doctor_prescribe_medication', 'medical', 1)," +
+                "('patient', 'Book Appointments', 'patient_book_appointments', 'patient', 1)," +
+                "('patient', 'View Own Records', 'patient_view_own_records', 'patient', 1)," +
+                "('patient', 'Message Doctor', 'patient_message_doctor', 'patient', 1)," +
+                "('secretary', 'Manage Appointments', 'secretary_manage_appointments', 'administrative', 1)," +
+                "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)");
 
         // Insert default admin user
-        db.execSQL("INSERT INTO users (full_name, email, password_hash, role) VALUES " +
-                "('Admin', 'admin@health.com', 'admin123', 'admin')");
+        db.execSQL("INSERT INTO users (full_name, email, password_hash, role, role_id, is_active) VALUES " +
+                "('Admin', 'admin@health.com', 'admin123', 'admin', 1, 1)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS permissions");
-        db.execSQL("DROP TABLE IF EXISTS notifications");
-        db.execSQL("DROP TABLE IF EXISTS messages");
-        db.execSQL("DROP TABLE IF EXISTS prescription_refill_requests");
-        db.execSQL("DROP TABLE IF EXISTS prescriptions");
-        db.execSQL("DROP TABLE IF EXISTS test_results");
-        db.execSQL("DROP TABLE IF EXISTS medical_records");
-        db.execSQL("DROP TABLE IF EXISTS appointments");
-        db.execSQL("DROP TABLE IF EXISTS doctors");
-        db.execSQL("DROP TABLE IF EXISTS patients");
-        db.execSQL("DROP TABLE IF EXISTS users");
-        onCreate(db);
+        if (oldVersion < 2) {
+            // Add new columns to existing tables
+            db.execSQL("ALTER TABLE users ADD COLUMN role_id INTEGER");
+            db.execSQL("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1");
+            db.execSQL("ALTER TABLE users ADD COLUMN last_login DATETIME");
+            
+            db.execSQL("ALTER TABLE permissions ADD COLUMN permission_key TEXT");
+            db.execSQL("ALTER TABLE permissions ADD COLUMN category TEXT");
+            db.execSQL("ALTER TABLE permissions ADD COLUMN role_required INTEGER DEFAULT 0");
+            
+            // Create roles table
+            db.execSQL("CREATE TABLE roles (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "name TEXT UNIQUE NOT NULL," +
+                    "description TEXT," +
+                    "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)");
+            
+            // Insert default roles
+            db.execSQL("INSERT INTO roles (name, description) VALUES " +
+                    "('admin', 'Administrator with full access')," +
+                    "('doctor', 'Medical doctor with patient access')," +
+                    "('patient', 'Patient with limited access')," +
+                    "('secretary', 'Secretary with administrative access')");
+            
+            // Update existing users with role_id
+            db.execSQL("UPDATE users SET role_id = 1 WHERE role = 'admin'");
+            db.execSQL("UPDATE users SET role_id = 2 WHERE role = 'doctor'");
+            db.execSQL("UPDATE users SET role_id = 3 WHERE role = 'patient'");
+            db.execSQL("UPDATE users SET role_id = 4 WHERE role = 'secretary'");
+            
+            // Clear and insert new permissions
+            db.execSQL("DELETE FROM permissions");
+            db.execSQL("INSERT INTO permissions (role, permission, permission_key, category, role_required) VALUES " +
+                    "('admin', 'Manage Users', 'admin_manage_users', 'administration', 1)," +
+                    "('admin', 'Manage Patients', 'admin_manage_patients', 'administration', 1)," +
+                    "('admin', 'View All Data', 'admin_view_all_data', 'administration', 1)," +
+                    "('doctor', 'View Patients', 'doctor_view_patients', 'medical', 1)," +
+                    "('doctor', 'Manage Appointments', 'doctor_manage_appointments', 'medical', 1)," +
+                    "('doctor', 'Access Medical Records', 'doctor_access_medical_records', 'medical', 1)," +
+                    "('doctor', 'Prescribe Medication', 'doctor_prescribe_medication', 'medical', 1)," +
+                    "('patient', 'Book Appointments', 'patient_book_appointments', 'patient', 1)," +
+                    "('patient', 'View Own Records', 'patient_view_own_records', 'patient', 1)," +
+                    "('patient', 'Message Doctor', 'patient_message_doctor', 'patient', 1)," +
+                    "('secretary', 'Manage Appointments', 'secretary_manage_appointments', 'administrative', 1)," +
+                    "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)");
+        }
     }
 }

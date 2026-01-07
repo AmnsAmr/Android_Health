@@ -2,7 +2,6 @@ package M.health;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -17,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class PatientDashboardActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
-    private SharedPreferences prefs;
+    private AuthManager authManager;
 
     // UI Components
     private TextView tvPatientName, tvPatientId;
@@ -35,13 +34,18 @@ public class PatientDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_patient_dashboard);
 
         dbHelper = new DatabaseHelper(this);
-        prefs = getSharedPreferences("user_session", MODE_PRIVATE);
+        authManager = AuthManager.getInstance(this);
 
-        // Retrieve current User ID from session
-        int userId = prefs.getInt("user_id", -1);
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
 
-        if (userId == -1) {
-            Toast.makeText(this, "Erreur: Session expirée", Toast.LENGTH_SHORT).show();
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        if (!"patient".equals(currentUser.role)) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -50,8 +54,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
         initializeViews();
 
         // Load Data
-        loadPatientInfo(userId);
-        loadNextAppointment(userId);
+        loadPatientInfo(currentUser.id);
+        loadNextAppointment(currentUser.id);
 
         // Setup Navigation
         setupNavigation();
@@ -79,8 +83,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             cardRdv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
-                    startActivity(intent);
+                    if (authManager.hasPermission("patient_book_appointments")) {
+                        Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -90,8 +98,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             cardDossier.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(PatientDashboardActivity.this, page_dossier_medical.class);
-                    startActivity(intent);
+                    if (authManager.hasPermission("patient_view_own_records")) {
+                        Intent intent = new Intent(PatientDashboardActivity.this, page_dossier_medical.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -101,8 +113,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             cardMeds.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(PatientDashboardActivity.this, page_medicament.class);
-                    startActivity(intent);
+                    if (authManager.hasPermission("patient_view_own_records")) {
+                        Intent intent = new Intent(PatientDashboardActivity.this, page_medicament.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -112,8 +128,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             cardMessages.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(PatientDashboardActivity.this, page_message.class);
-                    startActivity(intent);
+                    if (authManager.hasPermission("patient_message_doctor")) {
+                        Intent intent = new Intent(PatientDashboardActivity.this, page_message.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -123,8 +143,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
             btnEditRdv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
-                    startActivity(intent);
+                    if (authManager.hasPermission("patient_book_appointments")) {
+                        Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
@@ -193,9 +217,14 @@ public class PatientDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        int userId = prefs.getInt("user_id", -1);
-        if (userId != -1) {
-            loadNextAppointment(userId);
+        if (authManager.isLoggedIn() && authManager.validateSession()) {
+            AuthManager.User currentUser = authManager.getCurrentUser();
+            if (currentUser != null) {
+                loadNextAppointment(currentUser.id);
+            }
+        } else {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
         }
     }
 }
