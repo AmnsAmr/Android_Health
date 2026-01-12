@@ -30,8 +30,8 @@ public class book_appointment extends AppCompatActivity {
     private EditText etDate, etReason;
     private Button btnConfirm;
 
-    private List<Integer> doctorIds;
-    private List<String> doctorNames;
+    private final List<Integer> doctorIds = new ArrayList<>();
+    private final List<String> doctorNames = new ArrayList<>();
     private Calendar calendar;
     private int patientId;
 
@@ -65,17 +65,19 @@ public class book_appointment extends AppCompatActivity {
     }
 
     private void loadDoctors() {
-        doctorIds = new ArrayList<>();
-        doctorNames = new ArrayList<>();
+        doctorIds.clear();
+        doctorNames.clear();
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = null;
 
         try {
-            String query = "SELECT u.id, u.full_name, d.specialization " +
-                    "FROM users u " +
-                    "JOIN doctors d ON u.id = d.user_id " +
-                    "WHERE u.role = 'doctor'";
+            String query =
+                    "SELECT u.id, u.full_name, d.specialization " +
+                            "FROM users u " +
+                            "JOIN doctors d ON u.id = d.user_id " +
+                            "WHERE u.role = 'doctor' " +
+                            "ORDER BY u.full_name ASC";
 
             cursor = db.rawQuery(query, null);
 
@@ -106,6 +108,7 @@ public class book_appointment extends AppCompatActivity {
             Toast.makeText(this, "Erreur de chargement des médecins", Toast.LENGTH_SHORT).show();
         } finally {
             if (cursor != null) cursor.close();
+            db.close();
         }
     }
 
@@ -113,34 +116,26 @@ public class book_appointment extends AppCompatActivity {
         etDate.setFocusable(false);
         etDate.setClickable(true);
 
-        etDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatePickerDialog datePickerDialog = new DatePickerDialog(
-                        book_appointment.this,
-                        (view, year, month, dayOfMonth) -> {
-                            calendar.set(year, month, dayOfMonth);
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE);
-                            etDate.setText(sdf.format(calendar.getTime()));
-                        },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
-                );
+        etDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    book_appointment.this,
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE);
+                        etDate.setText(sdf.format(calendar.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
 
-                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-                datePickerDialog.show();
-            }
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+            datePickerDialog.show();
         });
     }
 
     private void setupConfirmButton() {
-        btnConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmBooking();
-            }
-        });
+        btnConfirm.setOnClickListener(v -> confirmBooking());
     }
 
     private void confirmBooking() {
@@ -165,7 +160,6 @@ public class book_appointment extends AppCompatActivity {
         int selectedPosition = spinnerDoctors.getSelectedItemPosition();
         int doctorId = doctorIds.get(selectedPosition);
 
-        // Convertir la date DD/MM/YYYY vers YYYY-MM-DD HH:mm:ss
         String appointmentDatetime = convertToDatetime(date);
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -175,8 +169,9 @@ public class book_appointment extends AppCompatActivity {
             values.put("patient_id", patientId);
             values.put("doctor_id", doctorId);
             values.put("appointment_datetime", appointmentDatetime);
-            values.put("reason", reason);
+            values.put("notes", reason);          // ✅ colonne correcte (pas reason)
             values.put("status", "scheduled");
+            values.put("created_by", "patient");  // ✅ contrainte CHECK
 
             long result = db.insert("appointments", null, values);
 
@@ -190,6 +185,8 @@ public class book_appointment extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erreur: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        } finally {
+            db.close();
         }
     }
 
@@ -197,7 +194,6 @@ public class book_appointment extends AppCompatActivity {
         try {
             String[] parts = date.split("/");
             if (parts.length == 3) {
-                // Format: YYYY-MM-DD 14:00:00 (heure par défaut)
                 return parts[2] + "-" + parts[1] + "-" + parts[0] + " 14:00:00";
             }
         } catch (Exception e) {
