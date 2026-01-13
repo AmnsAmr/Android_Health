@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/dossier_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Création et Mise à Jour des Dossiers Patients"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="50dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Action : Créer ou mettre à jour un dossier patient à la demande du médecin."
+        android:layout_marginBottom="24dp"
+        android:textColor="@android:color/darker_gray"
+        android:gravity="center_horizontal"/>
+
+        <Button
+            android:id="@+id/btn_nouveau_dossier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Créer un Nouveau Dossier Patient"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_maj_dossier_existant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modifier un Dossier Patient Existant"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_voir_tous_dossier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voir tous les Dossiers"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="* Cette action doit être effectuée sur demande du médecin."
+            android:layout_marginTop="20dp"
+            android:textColor="@android:color/holo_red_dark"
+            android:textStyle="italic"
+            android:gravity="center_horizontal"/>
+
+
+    </LinearLayout>
+    <Button
+        android:id="@+id/btn_retour_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Retour au menu"
+        android:layout_alignParentBottom="true"
+        android:backgroundTint="#87CEEB"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+</RelativeLayout>

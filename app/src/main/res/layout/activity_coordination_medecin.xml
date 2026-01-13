@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/tv_coordination_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Coordination et Communication Médecin"
+        android:gravity="center_horizontal"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerInParent="true">
+
+        <Button
+            android:id="@+id/btn_consulter_planning_medecin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Consulter les Plannings des Médecins"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_transmettre_demandes_rdv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Transmettre Demandes de Rendez-vous aux Médecins"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+
+        <Button
+            android:id="@+id/btn_transmettre_messages_urgents"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Transmettre Messages Urgents aux Médecins"
+            android:backgroundTint="#87CEEB"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="12dp"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_retour_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Retour au menu"
+        android:layout_alignParentBottom="true"
+        android:backgroundTint="#87CEEB"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+</RelativeLayout>

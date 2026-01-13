@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +13,84 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Health">
+        <activity
+            android:name=".UpdateDossierPatientActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CoordinationMedecinActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AjouterPatientActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TransmissionUrgentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ItemRdvActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RdvListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageRdvActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FormRdvActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ModifierDossierActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ConsultationPlanningActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SecretaryDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".book_appointment"
+            android:exported="false" />
+        <activity
+            android:name=".page_dossier_medical"
+            android:exported="false" />
+        <activity
+            android:name=".page_medicament"
+            android:exported="false" />
+        <activity
+            android:name=".page_message"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PatientDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageUsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManagePatientsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ViewTablesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorPatientsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorAppointmentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorMedicalRecordsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorPrescriptionsActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
