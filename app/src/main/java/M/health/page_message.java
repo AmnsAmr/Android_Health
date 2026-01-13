@@ -2,7 +2,6 @@ package M.health;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -16,7 +15,7 @@ import androidx.cardview.widget.CardView;
 public class page_message extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
-    private SharedPreferences prefs;
+    private AuthManager authManager;
 
     // UI Components
     private ImageView btnBack;
@@ -32,16 +31,27 @@ public class page_message extends AppCompatActivity {
         setContentView(R.layout.activity_page_message);
 
         dbHelper = new DatabaseHelper(this);
-        prefs = getSharedPreferences("user_session", MODE_PRIVATE);
+        authManager = AuthManager.getInstance(this);
 
-        // Retrieve current User ID from session
-        int userId = prefs.getInt("user_id", -1);
-
-        if (userId == -1) {
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
             Toast.makeText(this, "Erreur: Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
+
+        if (!authManager.hasPermission("patient_message_doctor")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        int userId = currentUser.id;
+
+        // Setup reusable header
+        View headerView = findViewById(R.id.headerLayout);
+        UIHelper.setupHeader(this, headerView, "Messages");
 
         // Initialize Views
         initializeViews();
@@ -185,9 +195,14 @@ public class page_message extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Recharger les données quand on revient sur cette page
-        int userId = prefs.getInt("user_id", -1);
-        if (userId != -1) {
-            loadMessagesData(userId);
+        if (authManager.isLoggedIn() && authManager.validateSession()) {
+            AuthManager.User currentUser = authManager.getCurrentUser();
+            if (currentUser != null) {
+                loadMessagesData(currentUser.id);
+            }
+        } else {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
         }
     }
 

@@ -1,6 +1,7 @@
 package M.health;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class ManageUsersActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager;
     private ListView usersListView;
     private ArrayAdapter<String> adapter;
     private List<User> users;
@@ -23,6 +25,21 @@ public class ManageUsersActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_users);
 
         dbHelper = new DatabaseHelper(this);
+        authManager = AuthManager.getInstance(this);
+        
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        if (!authManager.hasPermission("admin_manage_users")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         usersListView = findViewById(R.id.usersListView);
         totalUsersText = findViewById(R.id.totalUsersText);
         doctorsCountText = findViewById(R.id.doctorsCountText);
@@ -239,6 +256,8 @@ public class ManageUsersActivity extends AppCompatActivity {
         values.put("email", email);
         values.put("password_hash", password);
         values.put("role", role);
+        values.put("role_id", getRoleId(role));
+        values.put("is_active", 1);
 
         long result = db.insert("users", null, values);
         if (result != -1) {
@@ -349,14 +368,30 @@ public class ManageUsersActivity extends AppCompatActivity {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("role", newRole);
+        
+        // Update role_id based on role name
+        int roleId = getRoleId(newRole);
+        values.put("role_id", roleId);
 
         int result = db.update("users", values, "id = ?", new String[]{String.valueOf(userId)});
         if (result > 0) {
             Toast.makeText(this, "Rôle modifié avec succès", Toast.LENGTH_SHORT).show();
+            // Refresh permissions for all users if current user role changed
+            authManager.refreshPermissions();
             loadUsers();
             loadStatistics();
         } else {
             Toast.makeText(this, "Erreur lors de la modification", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private int getRoleId(String roleName) {
+        switch (roleName) {
+            case "admin": return 1;
+            case "doctor": return 2;
+            case "patient": return 3;
+            case "secretary": return 4;
+            default: return 3; // default to patient
         }
     }
 
