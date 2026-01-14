@@ -1,6 +1,6 @@
 package M.health;
 
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -15,7 +15,7 @@ import androidx.cardview.widget.CardView;
 public class page_dossier_medical extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
-    private SharedPreferences prefs;
+    private AuthManager authManager;
     private int patientId;
 
     // UI Components
@@ -30,14 +30,27 @@ public class page_dossier_medical extends AppCompatActivity {
         setContentView(R.layout.activity_page_dossier_medical);
 
         dbHelper = new DatabaseHelper(this);
-        prefs = getSharedPreferences("user_session", MODE_PRIVATE);
-        patientId = prefs.getInt("user_id", -1);
+        authManager = AuthManager.getInstance(this);
 
-        if (patientId == -1) {
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
             Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
+
+        if (!authManager.hasPermission("patient_view_own_records")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        patientId = currentUser.id;
+
+        // Setup reusable header
+        View headerView = findViewById(R.id.headerLayout);
+        UIHelper.setupHeader(this, headerView, "Dossier Médical");
 
         initializeViews();
         loadPatientData();

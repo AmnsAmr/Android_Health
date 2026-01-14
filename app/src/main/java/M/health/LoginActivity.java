@@ -1,9 +1,6 @@
 package M.health;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,17 +8,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
-    private DatabaseHelper dbHelper;
+    private AuthManager authManager;
     private EditText emailEdit, passwordEdit;
-    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        dbHelper = new DatabaseHelper(this);
-        prefs = getSharedPreferences("user_session", MODE_PRIVATE);
+        authManager = AuthManager.getInstance(this);
         emailEdit = findViewById(R.id.emailEdit);
         passwordEdit = findViewById(R.id.passwordEdit);
         Button loginBtn = findViewById(R.id.loginBtn);
@@ -41,36 +36,43 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT id, role FROM users WHERE email = ? AND password_hash = ?", 
-                                   new String[]{email, password});
-
-        if (cursor.moveToFirst()) {
-            int userId = cursor.getInt(0);
-            String role = cursor.getString(1);
-            cursor.close();
-
-            prefs.edit()
-                .putInt("user_id", userId)
-                .putString("user_role", role)
-                .putString("user_email", email)
-                .apply();
-
+        AuthManager.User user = authManager.login(email, password);
+        if (user != null) {
             Intent intent;
-            switch (role) {
+            switch (user.role) {
                 case "admin":
-                    intent = new Intent(this, AdminDashboardActivity.class);
+                    if (authManager.hasPermission("admin_manage_users")) {
+                        intent = new Intent(this, AdminDashboardActivity.class);
+                    } else {
+                        Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     break;
                 case "patient":
-                    intent = new Intent(this, PatientDashboardActivity.class);
+                    if (authManager.hasPermission("patient_view_own_records")) {
+                        intent = new Intent(this, PatientDashboardActivity.class);
+                    } else {
+                        Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     break;
                 case "doctor":
-                    intent = new Intent(this, DoctorDashboardActivity.class);
-                    intent.putExtra("user_id", userId);
+                    if (authManager.hasPermission("doctor_view_patients")) {
+                        intent = new Intent(this, DoctorDashboardActivity.class);
+                        intent.putExtra("user_id", user.id);
+                    } else {
+                        Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     break;
                 case "secretary":
-                    intent = new Intent(this, SecretaryDashboardActivity.class);
-                    intent.putExtra("user_id", userId);
+                    if (authManager.hasPermission("secretary_view_patient_list")) {
+                        intent = new Intent(this, SecretaryDashboardActivity.class);
+                        intent.putExtra("user_id", user.id);
+                    } else {
+                        Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     break;
                 default:
                     Toast.makeText(this, "Rôle inconnu", Toast.LENGTH_SHORT).show();
@@ -79,7 +81,6 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         } else {
-            cursor.close();
             Toast.makeText(this, "Email ou mot de passe incorrect", Toast.LENGTH_SHORT).show();
         }
     }
