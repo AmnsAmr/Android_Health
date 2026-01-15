@@ -1,11 +1,13 @@
 package M.health;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import java.util.List;
 
 public class DoctorAppointmentsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager;
     private ListView appointmentsListView;
     private int doctorId;
     private List<Appointment> appointments;
@@ -20,15 +23,30 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doctor_appointments);
 
         dbHelper = new DatabaseHelper(this);
-        doctorId = getIntent().getIntExtra("doctor_id", -1);
+        authManager = AuthManager.getInstance(this);
+
+        // Validate session and permissions
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+
+        if (!authManager.hasPermission("doctor_manage_appointments")) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_doctor_appointments);
+
+        doctorId = authManager.getUserId();
         appointmentsListView = findViewById(R.id.appointmentsListView);
         appointments = new ArrayList<>();
 
-        appointmentsListView.setOnItemClickListener((parent, view, position, id) -> 
-            showAppointmentOptions(appointments.get(position)));
+        appointmentsListView.setOnItemClickListener((parent, view, position, id) ->
+                showAppointmentOptions(appointments.get(position)));
 
         loadAppointments();
     }
@@ -36,66 +54,66 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
     private void loadAppointments() {
         appointments.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT a.id, u.full_name, a.appointment_datetime, a.status, a.notes " +
-            "FROM appointments a " +
-            "JOIN users u ON a.patient_id = u.id " +
-            "WHERE a.doctor_id = ? ORDER BY a.appointment_datetime DESC", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT a.id, u.full_name, a.appointment_datetime, a.status, a.notes " +
+                        "FROM appointments a " +
+                        "JOIN users u ON a.patient_id = u.id " +
+                        "WHERE a.doctor_id = ? ORDER BY a.appointment_datetime DESC",
+                new String[]{String.valueOf(doctorId)});
 
         List<String> appointmentStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
             Appointment appointment = new Appointment(
-                cursor.getInt(0),
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3),
-                cursor.getString(4)
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3),
+                    cursor.getString(4)
             );
             appointments.add(appointment);
-            appointmentStrings.add(appointment.patientName + " - " + 
-                appointment.datetime + " (" + appointment.status + ")");
+            appointmentStrings.add(appointment.patientName + " - " +
+                    appointment.datetime + " (" + appointment.status + ")");
         }
         cursor.close();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_list_item_1, appointmentStrings);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, appointmentStrings);
         appointmentsListView.setAdapter(adapter);
     }
 
     private void showAppointmentOptions(Appointment appointment) {
         String[] options = {"Voir détails", "Marquer comme terminé", "Annuler"};
-        
+
         new AlertDialog.Builder(this)
-            .setTitle(appointment.patientName)
-            .setItems(options, (dialog, which) -> {
-                switch (which) {
-                    case 0:
-                        showAppointmentDetails(appointment);
-                        break;
-                    case 1:
-                        updateAppointmentStatus(appointment.id, "completed");
-                        break;
-                    case 2:
-                        updateAppointmentStatus(appointment.id, "cancelled");
-                        break;
-                }
-            })
-            .show();
+                .setTitle(appointment.patientName)
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            showAppointmentDetails(appointment);
+                            break;
+                        case 1:
+                            updateAppointmentStatus(appointment.id, "completed");
+                            break;
+                        case 2:
+                            updateAppointmentStatus(appointment.id, "cancelled");
+                            break;
+                    }
+                })
+                .show();
     }
 
     private void showAppointmentDetails(Appointment appointment) {
         String details = "Patient: " + appointment.patientName + "\n" +
-                        "Date/Heure: " + appointment.datetime + "\n" +
-                        "Statut: " + appointment.status + "\n" +
-                        "Notes: " + (appointment.notes != null ? appointment.notes : "Aucune");
+                "Date/Heure: " + appointment.datetime + "\n" +
+                "Statut: " + appointment.status + "\n" +
+                "Notes: " + (appointment.notes != null ? appointment.notes : "Aucune");
 
         new AlertDialog.Builder(this)
-            .setTitle("Détails du Rendez-vous")
-            .setMessage(details)
-            .setPositiveButton("Fermer", null)
-            .show();
+                .setTitle("Détails du Rendez-vous")
+                .setMessage(details)
+                .setPositiveButton("Fermer", null)
+                .show();
     }
 
     private void updateAppointmentStatus(int appointmentId, String status) {
@@ -103,12 +121,33 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put("status", status);
 
-        int result = db.update("appointments", values, "id = ?", 
-            new String[]{String.valueOf(appointmentId)});
-        
+        int result = db.update("appointments", values, "id = ?",
+                new String[]{String.valueOf(appointmentId)});
+
         if (result > 0) {
+            Toast.makeText(this, "Statut mis à jour", Toast.LENGTH_SHORT).show();
             loadAppointments();
+        } else {
+            Toast.makeText(this, "Erreur lors de la mise à jour", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void redirectToLogin() {
+        Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+        loadAppointments();
     }
 
     private static class Appointment {

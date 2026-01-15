@@ -1,6 +1,7 @@
 package M.health;
 
 import android.content.ContentValues;
+import android.content.Intent; // Added import
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager; // Added AuthManager
     private ListView prescriptionsListView;
     private TextView refillRequestsText, totalPrescriptionsText, pendingRefillsText;
     private ArrayAdapter<String> adapter;
@@ -21,10 +23,28 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doctor_prescriptions);
 
         dbHelper = new DatabaseHelper(this);
-        doctorId = getIntent().getIntExtra("doctor_id", -1);
+        authManager = AuthManager.getInstance(this); // Initialize AuthManager
+
+        // 1. Validate Session
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+
+        // 2. Validate Permission
+        if (!authManager.hasPermission("doctor_prescribe_medication")) {
+            Toast.makeText(this, "Accès refusé: Permissions insuffisantes", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_doctor_prescriptions);
+
+        // 3. Get Doctor ID from Session
+        doctorId = authManager.getUserId();
+
         prescriptionsListView = findViewById(R.id.prescriptionsListView);
         refillRequestsText = findViewById(R.id.refillRequestsText);
         totalPrescriptionsText = findViewById(R.id.totalPrescriptionsText);
@@ -34,14 +54,37 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         LinearLayout addPrescriptionBtn = findViewById(R.id.addPrescriptionBtn);
         LinearLayout searchPrescriptionBtn = findViewById(R.id.searchPrescriptionBtn);
         LinearLayout manageRefillsBtn = findViewById(R.id.manageRefillsBtn);
-        
+
         addPrescriptionBtn.setOnClickListener(v -> showAddPrescriptionDialog());
         searchPrescriptionBtn.setOnClickListener(v -> showSearchDialog());
         manageRefillsBtn.setOnClickListener(v -> showManageRefillsDialog());
 
-        prescriptionsListView.setOnItemClickListener((parent, view, position, id) -> 
-            showPrescriptionOptionsDialog(prescriptions.get(position)));
+        prescriptionsListView.setOnItemClickListener((parent, view, position, id) ->
+                showPrescriptionOptionsDialog(prescriptions.get(position)));
 
+        loadPrescriptions();
+        loadRefillRequests();
+        loadStatistics();
+    }
+
+    // Added Session Management Helper
+    private void redirectToLogin() {
+        Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    // Added onResume to re-validate session
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+        // Refresh data
         loadPrescriptions();
         loadRefillRequests();
         loadStatistics();
@@ -50,28 +93,28 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void loadPrescriptions() {
         prescriptions.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT p.id, u.full_name, p.medication, p.dosage, p.created_at " +
-            "FROM prescriptions p " +
-            "JOIN users u ON p.patient_id = u.id " +
-            "WHERE p.doctor_id = ? ORDER BY p.created_at DESC", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT p.id, u.full_name, p.medication, p.dosage, p.created_at " +
+                        "FROM prescriptions p " +
+                        "JOIN users u ON p.patient_id = u.id " +
+                        "WHERE p.doctor_id = ? ORDER BY p.created_at DESC",
+                new String[]{String.valueOf(doctorId)});
 
         List<String> prescriptionStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
             Prescription prescription = new Prescription(
-                cursor.getInt(0),
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3),
-                cursor.getString(4)
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3),
+                    cursor.getString(4)
             );
             prescriptions.add(prescription);
-            
-            String prescriptionDisplay = String.format("%-18s | %-12s | Actions", 
-                prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
-                prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
+
+            String prescriptionDisplay = String.format("%-18s | %-12s | Actions",
+                    prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
+                    prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
             prescriptionStrings.add(prescriptionDisplay);
         }
         cursor.close();
@@ -93,15 +136,15 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void loadRefillRequests() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         StringBuilder requests = new StringBuilder();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT u.full_name, p.medication, pr.status, pr.requested_at " +
-            "FROM prescription_refill_requests pr " +
-            "JOIN prescriptions p ON pr.prescription_id = p.id " +
-            "JOIN users u ON p.patient_id = u.id " +
-            "WHERE p.doctor_id = ? AND pr.status = 'pending' " +
-            "ORDER BY pr.requested_at DESC LIMIT 3", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT u.full_name, p.medication, pr.status, pr.requested_at " +
+                        "FROM prescription_refill_requests pr " +
+                        "JOIN prescriptions p ON pr.prescription_id = p.id " +
+                        "JOIN users u ON p.patient_id = u.id " +
+                        "WHERE p.doctor_id = ? AND pr.status = 'pending' " +
+                        "ORDER BY pr.requested_at DESC LIMIT 3",
+                new String[]{String.valueOf(doctorId)});
 
         if (cursor.getCount() == 0) {
             requests.append("Aucune demande de renouvellement en attente");
@@ -119,22 +162,22 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
 
     private void loadStatistics() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         // Total prescriptions
         Cursor cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM prescriptions WHERE doctor_id = ?", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(*) FROM prescriptions WHERE doctor_id = ?",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             totalPrescriptionsText.setText(String.valueOf(cursor.getInt(0)));
         }
         cursor.close();
-        
+
         // Pending refills
         cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM prescription_refill_requests pr " +
-            "JOIN prescriptions p ON pr.prescription_id = p.id " +
-            "WHERE p.doctor_id = ? AND pr.status = 'pending'", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(*) FROM prescription_refill_requests pr " +
+                        "JOIN prescriptions p ON pr.prescription_id = p.id " +
+                        "WHERE p.doctor_id = ? AND pr.status = 'pending'",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             pendingRefillsText.setText(String.valueOf(cursor.getInt(0)));
         }
@@ -162,29 +205,29 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void searchPrescriptions(String query) {
         prescriptions.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT p.id, u.full_name, p.medication, p.dosage, p.created_at " +
-            "FROM prescriptions p " +
-            "JOIN users u ON p.patient_id = u.id " +
-            "WHERE p.doctor_id = ? AND (u.full_name LIKE ? OR p.medication LIKE ?) " +
-            "ORDER BY p.created_at DESC", 
-            new String[]{String.valueOf(doctorId), "%" + query + "%", "%" + query + "%"});
+                "SELECT p.id, u.full_name, p.medication, p.dosage, p.created_at " +
+                        "FROM prescriptions p " +
+                        "JOIN users u ON p.patient_id = u.id " +
+                        "WHERE p.doctor_id = ? AND (u.full_name LIKE ? OR p.medication LIKE ?) " +
+                        "ORDER BY p.created_at DESC",
+                new String[]{String.valueOf(doctorId), "%" + query + "%", "%" + query + "%"});
 
         List<String> prescriptionStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
             Prescription prescription = new Prescription(
-                cursor.getInt(0),
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3),
-                cursor.getString(4)
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3),
+                    cursor.getString(4)
             );
             prescriptions.add(prescription);
-            
-            String prescriptionDisplay = String.format("%-18s | %-12s | Actions", 
-                prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
-                prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
+
+            String prescriptionDisplay = String.format("%-18s | %-12s | Actions",
+                    prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
+                    prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
             prescriptionStrings.add(prescriptionDisplay);
         }
         cursor.close();
@@ -201,7 +244,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
             }
         };
         prescriptionsListView.setAdapter(adapter);
-        
+
         if (prescriptions.isEmpty()) {
             Toast.makeText(this, "Aucune prescription trouvée", Toast.LENGTH_SHORT).show();
         }
@@ -211,14 +254,14 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         // Get patients list
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT DISTINCT u.id, u.full_name FROM users u " +
-            "JOIN appointments a ON u.id = a.patient_id " +
-            "WHERE a.doctor_id = ? AND u.role = 'patient'", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT DISTINCT u.id, u.full_name FROM users u " +
+                        "JOIN appointments a ON u.id = a.patient_id " +
+                        "WHERE a.doctor_id = ? AND u.role = 'patient'",
+                new String[]{String.valueOf(doctorId)});
 
         List<String> patientNames = new ArrayList<>();
         List<Integer> patientIds = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             patientIds.add(cursor.getInt(0));
             patientNames.add(cursor.getString(1));
@@ -238,8 +281,8 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         layout.setPadding(50, 50, 50, 50);
 
         Spinner patientSpinner = new Spinner(this);
-        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, patientNames);
+        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, patientNames);
         patientAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         patientSpinner.setAdapter(patientAdapter);
         layout.addView(patientSpinner);
@@ -298,7 +341,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void showPrescriptionOptionsDialog(Prescription prescription) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(prescription.patientName + " - " + prescription.medication);
-        
+
         String[] options = {"Voir détails", "Modifier", "Supprimer"};
         builder.setItems(options, (dialog, which) -> {
             switch (which) {
@@ -319,13 +362,13 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void showPrescriptionDetails(Prescription prescription) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         StringBuilder details = new StringBuilder();
-        
+
         // Get full prescription details
         Cursor cursor = db.rawQuery(
-            "SELECT p.instructions, u.full_name, u.email FROM prescriptions p " +
-            "JOIN users u ON p.patient_id = u.id WHERE p.id = ?", 
-            new String[]{String.valueOf(prescription.id)});
-        
+                "SELECT p.instructions, u.full_name, u.email FROM prescriptions p " +
+                        "JOIN users u ON p.patient_id = u.id WHERE p.id = ?",
+                new String[]{String.valueOf(prescription.id)});
+
         if (cursor.moveToFirst()) {
             details.append("Patient: ").append(cursor.getString(1)).append("\n");
             details.append("Email: ").append(cursor.getString(2)).append("\n\n");
@@ -338,13 +381,13 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
             details.append("Prescrit le: ").append(prescription.createdAt).append("\n\n");
         }
         cursor.close();
-        
+
         // Check for refill requests
         cursor = db.rawQuery(
-            "SELECT status, requested_at FROM prescription_refill_requests " +
-            "WHERE prescription_id = ? ORDER BY requested_at DESC LIMIT 3", 
-            new String[]{String.valueOf(prescription.id)});
-        
+                "SELECT status, requested_at FROM prescription_refill_requests " +
+                        "WHERE prescription_id = ? ORDER BY requested_at DESC LIMIT 3",
+                new String[]{String.valueOf(prescription.id)});
+
         if (cursor.getCount() > 0) {
             details.append("DEMANDES DE RENOUVELLEMENT:\n");
             while (cursor.moveToNext()) {
@@ -355,10 +398,10 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         cursor.close();
 
         new AlertDialog.Builder(this)
-            .setTitle("Détails Prescription")
-            .setMessage(details.toString())
-            .setPositiveButton("Fermer", null)
-            .show();
+                .setTitle("Détails Prescription")
+                .setMessage(details.toString())
+                .setPositiveButton("Fermer", null)
+                .show();
     }
 
     private void showEditPrescriptionDialog(Prescription prescription) {
@@ -382,8 +425,8 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         // Get current instructions
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT instructions FROM prescriptions WHERE id = ?", 
-            new String[]{String.valueOf(prescription.id)});
+                "SELECT instructions FROM prescriptions WHERE id = ?",
+                new String[]{String.valueOf(prescription.id)});
         String currentInstructions = "";
         if (cursor.moveToFirst()) {
             currentInstructions = cursor.getString(0) != null ? cursor.getString(0) : "";
@@ -430,11 +473,11 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
 
     private void confirmDeletePrescription(Prescription prescription) {
         new AlertDialog.Builder(this)
-            .setTitle("Confirmer la suppression")
-            .setMessage("Supprimer la prescription " + prescription.medication + " pour " + prescription.patientName + " ?")
-            .setPositiveButton("Supprimer", (dialog, which) -> deletePrescription(prescription.id))
-            .setNegativeButton("Annuler", null)
-            .show();
+                .setTitle("Confirmer la suppression")
+                .setMessage("Supprimer la prescription " + prescription.medication + " pour " + prescription.patientName + " ?")
+                .setPositiveButton("Supprimer", (dialog, which) -> deletePrescription(prescription.id))
+                .setNegativeButton("Annuler", null)
+                .show();
     }
 
     private void deletePrescription(int prescriptionId) {
@@ -451,16 +494,16 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
 
     private void showManageRefillsDialog() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT pr.id, u.full_name, p.medication, pr.requested_at " +
-            "FROM prescription_refill_requests pr " +
-            "JOIN prescriptions p ON pr.prescription_id = p.id " +
-            "JOIN users u ON p.patient_id = u.id " +
-            "WHERE p.doctor_id = ? AND pr.status = 'pending' " +
-            "ORDER BY pr.requested_at DESC", 
-            new String[]{String.valueOf(doctorId)});
-        
+                "SELECT pr.id, u.full_name, p.medication, pr.requested_at " +
+                        "FROM prescription_refill_requests pr " +
+                        "JOIN prescriptions p ON pr.prescription_id = p.id " +
+                        "JOIN users u ON p.patient_id = u.id " +
+                        "WHERE p.doctor_id = ? AND pr.status = 'pending' " +
+                        "ORDER BY pr.requested_at DESC",
+                new String[]{String.valueOf(doctorId)});
+
         if (cursor.getCount() == 0) {
             cursor.close();
             Toast.makeText(this, "Aucune demande de renouvellement en attente", Toast.LENGTH_SHORT).show();
@@ -469,7 +512,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
 
         List<String> refillOptions = new ArrayList<>();
         List<Integer> refillIds = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             refillIds.add(cursor.getInt(0));
             refillOptions.add(cursor.getString(1) + " - " + cursor.getString(2) + " (" + cursor.getString(3) + ")");
@@ -488,7 +531,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
     private void showRefillActionDialog(int refillId) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Action sur la demande");
-        
+
         String[] actions = {"Approuver", "Rejeter"};
         builder.setItems(actions, (dialog, which) -> {
             String status = which == 0 ? "approved" : "rejected";
@@ -502,9 +545,9 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put("status", status);
 
-        int result = db.update("prescription_refill_requests", values, "id = ?", 
-            new String[]{String.valueOf(refillId)});
-        
+        int result = db.update("prescription_refill_requests", values, "id = ?",
+                new String[]{String.valueOf(refillId)});
+
         if (result > 0) {
             String message = status.equals("approved") ? "Demande approuvée" : "Demande rejetée";
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

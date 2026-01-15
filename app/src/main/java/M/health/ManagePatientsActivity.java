@@ -1,6 +1,7 @@
 package M.health;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,23 +13,36 @@ import java.util.List;
 
 public class ManagePatientsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager;
     private ListView patientsListView;
     private ArrayAdapter<String> adapter;
     private List<Patient> patients;
 
-    // Variable to store the current user's role
-    private String currentUserRole;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_manage_patients);
-
-        // Retrieve the role passed from the previous activity
-        // If coming from Admin (and admin sends nothing), this might be null, which is fine
-        currentUserRole = getIntent().getStringExtra("USER_ROLE");
 
         dbHelper = new DatabaseHelper(this);
+        authManager = AuthManager.getInstance(this);
+
+        // Validate session
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+
+        // Check permissions based on role
+        boolean hasAccess = authManager.hasPermission("admin_manage_patients") ||
+                authManager.hasPermission("secretary_view_patient_list");
+
+        if (!hasAccess) {
+            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_manage_patients);
+
         patientsListView = findViewById(R.id.patientsListView);
         patients = new ArrayList<>();
 
@@ -38,14 +52,16 @@ public class ManagePatientsActivity extends AppCompatActivity {
         loadPatients();
     }
 
-    // ... [loadPatients method remains exactly the same] ...
     private void loadPatients() {
         patients.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        // Querying users and patients tables
+
         Cursor cursor = db.rawQuery(
-                "SELECT u.id, u.full_name, u.email, p.date_of_birth, p.gender, p.blood_type " +
-                        "FROM users u LEFT JOIN patients p ON u.id = p.user_id WHERE u.role = 'patient'", null);
+                "SELECT u.id, u.full_name, u.email, u.phone, p.date_of_birth, p.gender, p.blood_type " +
+                        "FROM users u LEFT JOIN patients p ON u.id = p.user_id " +
+                        "WHERE u.role = 'patient' AND u.is_active = 1 " +
+                        "ORDER BY u.full_name",
+                null);
 
         List<String> patientStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
@@ -55,7 +71,8 @@ public class ManagePatientsActivity extends AppCompatActivity {
                     cursor.getString(2),
                     cursor.getString(3),
                     cursor.getString(4),
-                    cursor.getString(5)
+                    cursor.getString(5),
+                    cursor.getString(6)
             );
             patients.add(patient);
             patientStrings.add(patient.fullName + " - " + patient.email);
@@ -72,7 +89,7 @@ public class ManagePatientsActivity extends AppCompatActivity {
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 20, 50, 20); // Added some padding for better look
+        layout.setPadding(50, 20, 50, 20);
 
         TextView nameText = new TextView(this);
         nameText.setText("Nom: " + patient.fullName);
@@ -81,6 +98,10 @@ public class ManagePatientsActivity extends AppCompatActivity {
         TextView emailText = new TextView(this);
         emailText.setText("Email: " + patient.email);
         layout.addView(emailText);
+
+        TextView phoneText = new TextView(this);
+        phoneText.setText("Téléphone: " + (patient.phone != null ? patient.phone : "Non renseigné"));
+        layout.addView(phoneText);
 
         TextView dobText = new TextView(this);
         dobText.setText("Date de naissance: " + (patient.dateOfBirth != null ? patient.dateOfBirth : "Non renseignée"));
@@ -95,35 +116,25 @@ public class ManagePatientsActivity extends AppCompatActivity {
         layout.addView(bloodText);
 
         builder.setView(layout);
-
-        // --- DYNAMIC LOGIC STARTS HERE ---
-
-        // Always add the Close button
         builder.setNegativeButton("Fermer", null);
 
-        // Check if the user is a secretary
-        boolean isSecretary = "secretary".equals(currentUserRole);
-
-        // Only add 'Modifier' and 'Supprimer' buttons if the user is NOT a secretary
-        if (!isSecretary) {
+        // Only admins can modify or delete patients
+        // Secretaries can only view administrative data
+        if (authManager.hasPermission("admin_manage_patients")) {
             builder.setPositiveButton("Modifier", (dialog, which) -> showEditPatientDialog(patient));
-            builder.setNeutralButton("Supprimer", (dialog, which) -> deletePatient(patient.id));
+            builder.setNeutralButton("Supprimer", (dialog, which) -> confirmDeletePatient(patient.id));
         }
-
-        // --- DYNAMIC LOGIC ENDS HERE ---
 
         builder.show();
     }
 
-    // ... [Rest of the file: showEditPatientDialog, updatePatient, deletePatient, Patient class remain the same] ...
-
-    // For context, here are the unchanged methods just to keep the file valid in your mind:
     private void showEditPatientDialog(Patient patient) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Modifier Patient");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50);
 
         EditText nameEdit = new EditText(this);
         nameEdit.setText(patient.fullName);
@@ -134,6 +145,11 @@ public class ManagePatientsActivity extends AppCompatActivity {
         emailEdit.setText(patient.email);
         emailEdit.setHint("Email");
         layout.addView(emailEdit);
+
+        EditText phoneEdit = new EditText(this);
+        phoneEdit.setText(patient.phone != null ? patient.phone : "");
+        phoneEdit.setHint("Téléphone");
+        layout.addView(phoneEdit);
 
         EditText dobEdit = new EditText(this);
         dobEdit.setText(patient.dateOfBirth != null ? patient.dateOfBirth : "");
@@ -157,22 +173,32 @@ public class ManagePatientsActivity extends AppCompatActivity {
 
         builder.setView(layout);
         builder.setPositiveButton("Modifier", (dialog, which) -> {
-            String name = nameEdit.getText().toString();
-            String email = emailEdit.getText().toString();
-            String dob = dobEdit.getText().toString();
+            String name = nameEdit.getText().toString().trim();
+            String email = emailEdit.getText().toString().trim();
+            String phone = phoneEdit.getText().toString().trim();
+            String dob = dobEdit.getText().toString().trim();
             String gender = genderSpinner.getSelectedItem().toString();
-            String blood = bloodEdit.getText().toString();
-            updatePatient(patient.id, name, email, dob, gender, blood);
+            String blood = bloodEdit.getText().toString().trim();
+
+            if (!name.isEmpty() && !email.isEmpty()) {
+                updatePatient(patient.id, name, email, phone, dob, gender, blood);
+            } else {
+                Toast.makeText(this, "Le nom et l'email sont obligatoires", Toast.LENGTH_SHORT).show();
+            }
         });
         builder.setNegativeButton("Annuler", null);
         builder.show();
     }
 
-    private void updatePatient(int id, String name, String email, String dob, String gender, String blood) {
+    private void updatePatient(int id, String name, String email, String phone, String dob, String gender, String blood) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         ContentValues userValues = new ContentValues();
         userValues.put("full_name", name);
         userValues.put("email", email);
+        if (!phone.isEmpty()) {
+            userValues.put("phone", phone);
+        }
         db.update("users", userValues, "id = ?", new String[]{String.valueOf(id)});
 
         ContentValues patientValues = new ContentValues();
@@ -186,34 +212,57 @@ public class ManagePatientsActivity extends AppCompatActivity {
             db.insert("patients", null, patientValues);
         }
 
-        Toast.makeText(this, "Patient modifié", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Patient modifié avec succès", Toast.LENGTH_SHORT).show();
         loadPatients();
     }
 
-    private void deletePatient(int id) {
+    private void confirmDeletePatient(int id) {
         new AlertDialog.Builder(this)
-                .setTitle("Confirmer")
-                .setMessage("Supprimer ce patient et toutes ses données?")
-                .setPositiveButton("Oui", (dialog, which) -> {
-                    SQLiteDatabase db = dbHelper.getWritableDatabase();
-                    int result = db.delete("users", "id = ?", new String[]{String.valueOf(id)});
-                    if (result > 0) {
-                        Toast.makeText(this, "Patient supprimé", Toast.LENGTH_SHORT).show();
-                        loadPatients();
-                    }
-                })
-                .setNegativeButton("Non", null)
+                .setTitle("Confirmer la suppression")
+                .setMessage("Supprimer ce patient et toutes ses données?\n\nCette action est irréversible.")
+                .setPositiveButton("Supprimer", (dialog, which) -> deletePatient(id))
+                .setNegativeButton("Annuler", null)
                 .show();
+    }
+
+    private void deletePatient(int id) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int result = db.delete("users", "id = ?", new String[]{String.valueOf(id)});
+        if (result > 0) {
+            Toast.makeText(this, "Patient supprimé avec succès", Toast.LENGTH_SHORT).show();
+            loadPatients();
+        } else {
+            Toast.makeText(this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void redirectToLogin() {
+        Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+        loadPatients();
     }
 
     private static class Patient {
         int id;
-        String fullName, email, dateOfBirth, gender, bloodType;
+        String fullName, email, phone, dateOfBirth, gender, bloodType;
 
-        Patient(int id, String fullName, String email, String dateOfBirth, String gender, String bloodType) {
+        Patient(int id, String fullName, String email, String phone, String dateOfBirth, String gender, String bloodType) {
             this.id = id;
             this.fullName = fullName;
             this.email = email;
+            this.phone = phone;
             this.dateOfBirth = dateOfBirth;
             this.gender = gender;
             this.bloodType = bloodType;
