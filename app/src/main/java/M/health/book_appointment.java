@@ -60,6 +60,10 @@ public class book_appointment extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         patientId = currentUser.id;
 
+        // Setup reusable user profile header
+        View userProfileHeader = findViewById(R.id.userProfileHeader);
+        UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
+
         initializeViews();
         loadDoctors();
         setupDatePicker();

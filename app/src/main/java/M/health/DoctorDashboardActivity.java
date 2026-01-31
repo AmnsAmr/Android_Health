@@ -66,8 +66,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardMedicalRecords.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_access_medical_records")) {
-                startActivity(new Intent(this, DoctorMedicalRecordsActivity.class)
-                    .putExtra("doctor_id", doctorId));
+                startActivity(new Intent(this, TestResultsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }
@@ -75,8 +74,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardPrescriptions.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_prescribe_medication")) {
-                startActivity(new Intent(this, DoctorPrescriptionsActivity.class)
-                    .putExtra("doctor_id", doctorId));
+                startActivity(new Intent(this, DoctorRefillRequestsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }

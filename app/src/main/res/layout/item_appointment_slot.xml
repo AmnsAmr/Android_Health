@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="4dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="14:00"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#2C3E50"
+            android:minWidth="60dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvPatient"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Patient Name"
+                android:textSize="14sp"
+                android:textColor="#2C3E50" />
+
+            <TextView
+                android:id="@+id/tvNotes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notes"
+                android:textSize="12sp"
+                android:textColor="#7F8C8D"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STATUS"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#4CAF50" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

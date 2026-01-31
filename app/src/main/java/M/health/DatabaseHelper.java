@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "health_app.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -86,6 +86,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY (patient_id) REFERENCES users(id)," +
                 "FOREIGN KEY (doctor_id) REFERENCES users(id))");
 
+        // Test result comments table
+        db.execSQL("CREATE TABLE test_result_comments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "test_result_id INTEGER NOT NULL," +
+                "doctor_id INTEGER NOT NULL," +
+                "comment TEXT NOT NULL," +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "FOREIGN KEY (test_result_id) REFERENCES test_results(id)," +
+                "FOREIGN KEY (doctor_id) REFERENCES users(id))");
+
         // Prescriptions table
         db.execSQL("CREATE TABLE prescriptions (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -155,7 +165,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "('patient', 'View Own Records', 'patient_view_own_records', 'patient', 1)," +
                 "('patient', 'Message Doctor', 'patient_message_doctor', 'patient', 1)," +
                 "('secretary', 'Manage Appointments', 'secretary_manage_appointments', 'administrative', 1)," +
-                "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)");
+                "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)," +
+                "('secretary', 'Coordinate Doctors', 'secretary_coordinate_doctors', 'administrative', 1)," +
+                "('secretary', 'Manage Patients', 'secretary_manage_patients', 'administrative', 1)," +
+                "('secretary', 'View Doctor Schedules', 'secretary_view_doctor_schedules', 'administrative', 1)," +
+                "('secretary', 'Send Urgent Messages', 'secretary_send_urgent_messages', 'administrative', 1)," +
+                "('secretary', 'Update Patient Profiles', 'secretary_update_patient_profiles', 'administrative', 1)," +
+                "('secretary', 'Access Patient List', 'secretary_access_patient_list', 'administrative', 1)");
 
         // Insert default admin user
         db.execSQL("INSERT INTO users (full_name, email, password_hash, role, role_id, is_active) VALUES " +
@@ -209,7 +225,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "('patient', 'View Own Records', 'patient_view_own_records', 'patient', 1)," +
                     "('patient', 'Message Doctor', 'patient_message_doctor', 'patient', 1)," +
                     "('secretary', 'Manage Appointments', 'secretary_manage_appointments', 'administrative', 1)," +
-                    "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)");
+                    "('secretary', 'View Patient List', 'secretary_view_patient_list', 'administrative', 1)," +
+                    "('secretary', 'Coordinate Doctors', 'secretary_coordinate_doctors', 'administrative', 1)," +
+                    "('secretary', 'Manage Patients', 'secretary_manage_patients', 'administrative', 1)," +
+                    "('secretary', 'View Doctor Schedules', 'secretary_view_doctor_schedules', 'administrative', 1)," +
+                    "('secretary', 'Send Urgent Messages', 'secretary_send_urgent_messages', 'administrative', 1)," +
+                    "('secretary', 'Update Patient Profiles', 'secretary_update_patient_profiles', 'administrative', 1)," +
+                    "('secretary', 'Access Patient List', 'secretary_access_patient_list', 'administrative', 1)");
+        }
+        if (oldVersion < 3) {
+            // Add test result comments table
+            db.execSQL("CREATE TABLE test_result_comments (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "test_result_id INTEGER NOT NULL," +
+                    "doctor_id INTEGER NOT NULL," +
+                    "comment TEXT NOT NULL," +
+                    "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "FOREIGN KEY (test_result_id) REFERENCES test_results(id)," +
+                    "FOREIGN KEY (doctor_id) REFERENCES users(id))");
+        }
+        if (oldVersion < 4) {
+            // Fix secretary permissions
+            db.execSQL("INSERT OR REPLACE INTO permissions (role, permission, permission_key, category, role_required) VALUES " +
+                "('secretary', 'Manage Patients', 'secretary_manage_patients', 'administrative', 1)," +
+                "('secretary', 'View Doctor Schedules', 'secretary_view_doctor_schedules', 'administrative', 1)," +
+                "('secretary', 'Send Urgent Messages', 'secretary_send_urgent_messages', 'administrative', 1)," +
+                "('secretary', 'Update Patient Profiles', 'secretary_update_patient_profiles', 'administrative', 1)," +
+                "('secretary', 'Access Patient List', 'secretary_access_patient_list', 'administrative', 1)");
         }
     }
 }

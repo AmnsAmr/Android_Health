@@ -49,9 +49,9 @@ public class page_message extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         int userId = currentUser.id;
 
-        // Setup reusable header
+        // Setup reusable header with sign out functionality
         View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeader(this, headerView, "Messages");
+        UIHelper.setupHeaderWithSignOut(this, headerView, "Messages", authManager);
 
         // Initialize Views
         initializeViews();
@@ -75,131 +75,101 @@ public class page_message extends AppCompatActivity {
     private void setupClickListeners() {
         // Bouton Retour
         if (btnBack != null) {
-            btnBack.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finish(); // Retour à l'écran précédent
-                }
-            });
+            btnBack.setOnClickListener(v -> finish());
         }
 
         // Bouton Nouveau Message
         if (btnNewMessage != null) {
-            btnNewMessage.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ouvrirNouveauMessage();
-                }
-            });
+            btnNewMessage.setOnClickListener(v -> ouvrirNouveauMessage());
         }
 
-        // Click sur Conversation 1 (Dr. Rachid Bennani)
-        if (cardConversation1 != null) {
-            cardConversation1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ouvrirConversation(1, "Dr. Rachid Bennani", "Cardiologue");
-                }
-            });
-        }
+        // Load and setup conversation cards dynamically
+        setupConversationCards();
+    }
+    
+    private void setupConversationCards() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        int userId = currentUser.id;
+        
+        // Hide all cards initially
+        cardConversation1.setVisibility(View.GONE);
+        cardConversation2.setVisibility(View.GONE);
+        cardConversation3.setVisibility(View.GONE);
+        cardConversation4.setVisibility(View.GONE);
+        
+        try {
+            String query = "SELECT DISTINCT " +
+                    "CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END as other_user_id, " +
+                    "u.full_name, " +
+                    "u.role, " +
+                    "COALESCE(d.specialization, 'Secrétaire') as specialization, " +
+                    "MAX(m.sent_at) as last_message_time " +
+                    "FROM messages m " +
+                    "JOIN users u ON (CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END) = u.id " +
+                    "LEFT JOIN doctors d ON u.id = d.user_id " +
+                    "WHERE m.sender_id = ? OR m.receiver_id = ? " +
+                    "GROUP BY other_user_id " +
+                    "ORDER BY last_message_time DESC LIMIT 4";
 
-        // Click sur Conversation 2 (Dr. Fatima Zahra)
-        if (cardConversation2 != null) {
-            cardConversation2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ouvrirConversation(2, "Dr. Fatima Zahra", "Médecin généraliste");
-                }
-            });
-        }
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), String.valueOf(userId), 
+                                                           String.valueOf(userId), String.valueOf(userId)});
 
-        // Click sur Conversation 3 (Dr. Karim El Alaoui)
-        if (cardConversation3 != null) {
-            cardConversation3.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ouvrirConversation(3, "Dr. Karim El Alaoui", "Dermatologue");
-                }
-            });
-        }
-
-        // Click sur Conversation 4 (Secrétariat Médical)
-        if (cardConversation4 != null) {
-            cardConversation4.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ouvrirConversation(4, "Secrétariat Médical", "Service administratif");
-                }
-            });
+            CardView[] cards = {cardConversation1, cardConversation2, cardConversation3, cardConversation4};
+            int cardIndex = 0;
+            
+            while (cursor.moveToNext() && cardIndex < 4) {
+                final int otherUserId = cursor.getInt(0);
+                final String fullName = cursor.getString(1);
+                final String role = cursor.getString(2);
+                final String specialization = cursor.getString(3);
+                
+                String displayName = role.equals("doctor") ? "Dr. " + fullName : fullName;
+                
+                cards[cardIndex].setVisibility(View.VISIBLE);
+                cards[cardIndex].setOnClickListener(v -> 
+                    ouvrirConversation(otherUserId, displayName, specialization));
+                
+                cardIndex++;
+            }
+            cursor.close();
+            
+            // If no conversations exist, show message
+            if (cardIndex == 0) {
+                Toast.makeText(this, "Aucune conversation. Créez un nouveau message.", Toast.LENGTH_LONG).show();
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors du chargement des conversations", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void loadMessagesData(int patientId) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-
-        try {
-            // Exemple de requête pour charger les conversations
-            // Cette requête devra être adaptée selon votre structure de base de données
-            String query = "SELECT m.*, u.full_name, d.specialization " +
-                    "FROM messages m " +
-                    "JOIN users u ON m.sender_id = u.id " +
-                    "LEFT JOIN doctors d ON u.id = d.user_id " +
-                    "WHERE m.receiver_id = ? OR m.sender_id = ? " +
-                    "GROUP BY m.conversation_id " +
-                    "ORDER BY m.created_at DESC";
-
-            cursor = db.rawQuery(query, new String[]{String.valueOf(patientId), String.valueOf(patientId)});
-
-            // Traiter les résultats
-            if (cursor.getCount() == 0) {
-                // Les données statiques du XML seront affichées
-                Toast.makeText(this, "Aucune conversation trouvée", Toast.LENGTH_SHORT).show();
-            } else {
-                // TODO: Mettre à jour l'interface avec les données de la base
-                // Pour l'instant, les données statiques sont affichées
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            // Les données statiques du XML seront affichées en cas d'erreur
-        } finally {
-            if (cursor != null) cursor.close();
-        }
+    private void loadMessagesData(int userId) {
+        // This method is now handled by setupConversationCards()
+        // Keep for compatibility but functionality moved to setupConversationCards
     }
 
     private void ouvrirNouveauMessage() {
-        // TODO: Ouvrir une activité pour composer un nouveau message
-        Toast.makeText(this,
-                "Nouveau message - À venir",
-                Toast.LENGTH_SHORT).show();
-
-        // Intent intent = new Intent(this, ComposeMessageActivity.class);
-        // startActivity(intent);
+        Intent intent = new Intent(this, ComposeMessageActivity.class);
+        startActivity(intent);
     }
 
-    private void ouvrirConversation(int conversationId, String doctorName, String speciality) {
-        // TODO: Ouvrir l'activité de conversation avec le médecin
-        Toast.makeText(this,
-                "Ouvrir conversation avec " + doctorName,
-                Toast.LENGTH_SHORT).show();
-
-        // Intent intent = new Intent(this, ConversationActivity.class);
-        // intent.putExtra("conversation_id", conversationId);
-        // intent.putExtra("doctor_name", doctorName);
-        // intent.putExtra("speciality", speciality);
-        // startActivity(intent);
+    private void ouvrirConversation(int otherUserId, String doctorName, String speciality) {
+        Intent intent = new Intent(this, ConversationActivity.class);
+        intent.putExtra("other_user_id", otherUserId);
+        intent.putExtra("other_user_name", doctorName);
+        startActivity(intent);
     }
+
+
 
     @Override
     protected void onResume() {
         super.onResume();
         // Recharger les données quand on revient sur cette page
         if (authManager.isLoggedIn() && authManager.validateSession()) {
-            AuthManager.User currentUser = authManager.getCurrentUser();
-            if (currentUser != null) {
-                loadMessagesData(currentUser.id);
-            }
+            setupConversationCards(); // Refresh conversations
         } else {
             startActivity(new Intent(this, LoginActivity.class));
             finish();

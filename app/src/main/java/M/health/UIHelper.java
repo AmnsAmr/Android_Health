@@ -21,6 +21,7 @@ public class UIHelper {
         TextView tvUserRole = headerView.findViewById(R.id.tvUserRole);
         TextView tvUserInfo = headerView.findViewById(R.id.tvUserInfo);
         ImageView btnSettings = headerView.findViewById(R.id.btnSettings);
+        ImageView btnSignOut = headerView.findViewById(R.id.btnSignOut);
         ImageView ivUserAvatar = headerView.findViewById(R.id.ivUserAvatar);
 
         if (tvUserName != null) {
@@ -39,6 +40,16 @@ public class UIHelper {
             btnSettings.setOnClickListener(v -> {
                 Intent intent = new Intent(activity, SettingsActivity.class);
                 activity.startActivity(intent);
+            });
+        }
+
+        if (btnSignOut != null) {
+            btnSignOut.setOnClickListener(v -> {
+                authManager.logout();
+                Intent intent = new Intent(activity, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                activity.startActivity(intent);
+                activity.finish();
             });
         }
 
@@ -73,6 +84,40 @@ public class UIHelper {
 
     public static void setupHeader(Activity activity, View headerView, String title) {
         setupHeader(activity, headerView, title, v -> activity.finish(), null);
+    }
+
+    public static void setupHeaderWithSignOut(Activity activity, View headerView, String title, AuthManager authManager) {
+        if (headerView == null) return;
+
+        TextView tvHeaderTitle = headerView.findViewById(R.id.tvHeaderTitle);
+        ImageView btnBack = headerView.findViewById(R.id.btnBack);
+        ImageView btnHeaderAction = headerView.findViewById(R.id.btnHeaderAction);
+        ImageView btnSignOut = headerView.findViewById(R.id.btnSignOut);
+
+        if (tvHeaderTitle != null) {
+            tvHeaderTitle.setText(title);
+        }
+
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> activity.finish());
+        }
+
+        if (btnHeaderAction != null) {
+            btnHeaderAction.setOnClickListener(v -> {
+                Intent intent = new Intent(activity, SettingsActivity.class);
+                activity.startActivity(intent);
+            });
+        }
+
+        if (btnSignOut != null && authManager != null) {
+            btnSignOut.setOnClickListener(v -> {
+                authManager.logout();
+                Intent intent = new Intent(activity, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                activity.startActivity(intent);
+                activity.finish();
+            });
+        }
     }
 
     private static String getRoleDisplay(String role) {

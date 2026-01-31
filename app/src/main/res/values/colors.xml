@@ -6,4 +6,8 @@
     <color name="Grey">#808080</color>
     <color name="primary_blue">#2196F3</color>
     <color name="light_background">#F2F5F9</color>
+    <color name="primary_color">#2196F3</color>
+    <color name="secondary_color">#FF9800</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
 </resources>

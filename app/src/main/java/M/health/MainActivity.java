@@ -13,6 +13,12 @@ public class MainActivity extends AppCompatActivity {
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         dbHelper.getWritableDatabase();
         
+        // Fix secretary permissions
+        PermissionFixer.fixSecretaryPermissions(this);
+        
+        // Fix missing doctor profiles
+        DoctorProfileFixer.fixMissingDoctorProfiles(this);
+        
         // Redirect to login
         startActivity(new Intent(this, LoginActivity.class));
         finish();

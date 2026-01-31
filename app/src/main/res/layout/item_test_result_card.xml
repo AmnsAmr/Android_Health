@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvTestName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test Name"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#2C3E50" />
+
+        <TextView
+            android:id="@+id/tvPatient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Patient Name"
+            android:textSize="14sp"
+            android:textColor="#7F8C8D"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test Date"
+            android:textSize="12sp"
+            android:textColor="#7F8C8D"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Result"
+            android:textSize="14sp"
+            android:textColor="#2C3E50"
+            android:layout_marginTop="8dp"
+            android:background="#F8F9FA"
+            android:padding="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Commentaires:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#2C3E50"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/tvComments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aucun commentaire"
+            android:textSize="12sp"
+            android:textColor="#7F8C8D"
+            android:layout_marginTop="4dp"
+            android:background="#F8F9FA"
+            android:padding="8dp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/etNewComment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Ajouter une interprétation..."
+            android:background="@android:color/white"
+            android:padding="8dp"
+            android:minLines="2" />
+
+        <Button
+            android:id="@+id/btnAddComment"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#2196F3"
+            android:text="Ajouter Commentaire"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

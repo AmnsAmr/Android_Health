@@ -144,7 +144,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if (authManager.hasPermission("patient_book_appointments")) {
-                        Intent intent = new Intent(PatientDashboardActivity.this, book_appointment.class);
+                        Intent intent = new Intent(PatientDashboardActivity.this, PatientAppointmentsActivity.class);
                         startActivity(intent);
                     } else {
                         Toast.makeText(PatientDashboardActivity.this, "Accès refusé", Toast.LENGTH_SHORT).show();

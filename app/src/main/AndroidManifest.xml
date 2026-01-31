@@ -56,10 +56,19 @@
             android:name=".page_dossier_medical"
             android:exported="false" />
         <activity
+            android:name=".MedicalHistoryTimelineActivity"
+            android:exported="false" />
+        <activity
             android:name=".page_medicament"
             android:exported="false" />
         <activity
             android:name=".page_message"
+            android:exported="false" />
+        <activity
+            android:name=".ConversationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ComposeMessageActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
@@ -69,6 +78,9 @@
             android:exported="false" />
         <activity
             android:name=".PatientDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PatientAppointmentsActivity"
             android:exported="false" />
         <activity
             android:name=".ManageUsersActivity"
@@ -93,6 +105,18 @@
             android:exported="false" />
         <activity
             android:name=".DoctorPrescriptionsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorRefillRequestsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TestResultsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorScheduleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SystemMonitoringActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

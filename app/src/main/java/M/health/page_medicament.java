@@ -53,9 +53,9 @@ public class page_medicament extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         int userId = currentUser.id;
 
-        // Setup reusable header
+        // Setup reusable header with sign out functionality
         View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeader(this, headerView, "Mes Médicaments");
+        UIHelper.setupHeaderWithSignOut(this, headerView, "Mes Médicaments", authManager);
 
         // Initialize Views
         initializeViews();
@@ -174,28 +174,54 @@ public class page_medicament extends AppCompatActivity {
     }
 
     private void loadMedicationsData(int patientId) {
-        // TODO: Charger les données des médicaments depuis la base de données
-        // Pour l'instant, les données sont statiques dans le XML
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = null;
 
         try {
-            // Exemple de requête pour charger les médicaments
-            // Cette requête devra être adaptée selon votre structure de base de données
-            String query = "SELECT * FROM medications WHERE patient_id = ? ORDER BY created_at DESC";
+            String query = "SELECT p.id, p.medication, p.dosage, p.instructions, u.full_name as doctor_name " +
+                    "FROM prescriptions p " +
+                    "JOIN users u ON p.doctor_id = u.id " +
+                    "WHERE p.patient_id = ? ORDER BY p.created_at DESC";
             cursor = db.rawQuery(query, new String[]{String.valueOf(patientId)});
 
-            // Traiter les résultats
-            // Pour l'instant, afficher un message si aucun médicament n'est trouvé
             if (cursor.getCount() == 0) {
-                // Les données statiques du XML seront affichées
+                Toast.makeText(this, "Aucun médicament prescrit", Toast.LENGTH_SHORT).show();
+            } else {
+                // Update UI with real medication data
+                updateMedicationCards(cursor);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Les données statiques du XML seront affichées en cas d'erreur
+            Toast.makeText(this, "Erreur lors du chargement des médicaments", Toast.LENGTH_SHORT).show();
         } finally {
             if (cursor != null) cursor.close();
+        }
+    }
+    
+    private void updateMedicationCards(Cursor cursor) {
+        // Hide all cards initially
+        cardMedicament1.setVisibility(View.GONE);
+        cardMedicament2.setVisibility(View.GONE);
+        cardMedicament3.setVisibility(View.GONE);
+        
+        int cardIndex = 0;
+        while (cursor.moveToNext() && cardIndex < 3) {
+            String medication = cursor.getString(1);
+            String dosage = cursor.getString(2);
+            String doctorName = cursor.getString(4);
+            
+            // Show and update the appropriate card
+            CardView card = cardIndex == 0 ? cardMedicament1 : 
+                           cardIndex == 1 ? cardMedicament2 : cardMedicament3;
+            card.setVisibility(View.VISIBLE);
+            
+            // Update medication name in the card (you'll need to add TextViews to the layout)
+            // For now, we'll update the click listeners with real data
+            final String finalMedication = medication;
+            card.setOnClickListener(v -> afficherDetailsMedicament(finalMedication));
+            
+            cardIndex++;
         }
     }
 
@@ -210,13 +236,52 @@ public class page_medicament extends AppCompatActivity {
     }
 
     private void renouvellerOrdonnance(String medicamentNom) {
-        // TODO: Créer une demande de renouvellement d'ordonnance
-        Toast.makeText(this,
-                "Demande de renouvellement envoyée pour " + medicamentNom,
-                Toast.LENGTH_LONG).show();
-
-        // Possibilité d'ouvrir une activité pour la demande de renouvellement
-        // ou d'envoyer une notification au médecin
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        AuthManager.User currentUser = authManager.getCurrentUser();
+        
+        try {
+            // Find the prescription ID for this medication
+            Cursor cursor = db.rawQuery(
+                "SELECT id FROM prescriptions WHERE patient_id = ? AND medication = ? ORDER BY created_at DESC LIMIT 1",
+                new String[]{String.valueOf(currentUser.id), medicamentNom});
+            
+            if (cursor.moveToFirst()) {
+                int prescriptionId = cursor.getInt(0);
+                cursor.close();
+                
+                // Check if there's already a pending request
+                Cursor existingRequest = db.rawQuery(
+                    "SELECT id FROM prescription_refill_requests WHERE prescription_id = ? AND status = 'pending'",
+                    new String[]{String.valueOf(prescriptionId)});
+                
+                if (existingRequest.moveToFirst()) {
+                    existingRequest.close();
+                    Toast.makeText(this, "Une demande de renouvellement est déjà en cours", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                existingRequest.close();
+                
+                // Create new refill request
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put("prescription_id", prescriptionId);
+                values.put("status", "pending");
+                
+                long result = db.insert("prescription_refill_requests", null, values);
+                
+                if (result != -1) {
+                    Toast.makeText(this, "✓ Demande de renouvellement envoyée pour " + medicamentNom, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Erreur lors de l'envoi de la demande", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                cursor.close();
+                Toast.makeText(this, "Prescription non trouvée", Toast.LENGTH_SHORT).show();
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void afficherDetailsMedicament(String medicamentNom) {

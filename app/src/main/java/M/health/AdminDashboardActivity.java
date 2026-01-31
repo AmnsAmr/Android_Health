@@ -69,6 +69,15 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
+        LinearLayout systemMonitoringBtn = findViewById(R.id.systemMonitoringBtn);
+        systemMonitoringBtn.setOnClickListener(v -> {
+            if (authManager.hasPermission("admin_view_all_data")) {
+                startActivity(new Intent(this, SystemMonitoringActivity.class));
+            } else {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         loadStats();
     }
 

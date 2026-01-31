@@ -1,68 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:orientation="vertical"
+    android:background="#F5F7FA">
 
-    <TextView
-        android:id="@+id/title_urgent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Alerte Message Urgent"
-        android:textColor="@android:color/holo_red_dark"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_centerHorizontal="true" />
+    <include 
+        android:id="@+id/headerLayout"
+        layout="@layout/layout_header" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_centerInParent="true">
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/title_urgent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alerte Message Urgent"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Destinataire (Médecin) :"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
         <Spinner
             android:id="@+id/spinner_dest_medecin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp" />
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="16dp" />
 
         <EditText
             android:id="@+id/et_objet_urgent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Objet de l'urgence"
-            android:layout_marginBottom="10dp"/>
+            android:background="@android:color/white"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
 
         <EditText
             android:id="@+id/et_corps_message"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:hint="Détails du message..."
-            android:lines="5"
             android:gravity="top"
-            android:layout_marginBottom="20dp"/>
+            android:background="@android:color/white"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"/>
 
         <Button
             android:id="@+id/btn_envoyer_urgent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Transmettre Immédiatement"
-            android:backgroundTint="#87CEEB"
-            android:textColor="@android:color/black" />
-    </LinearLayout>
+            android:backgroundTint="#E74C3C"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/btn_retour_menu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Retour au menu"
-        android:layout_alignParentBottom="true"
-        android:backgroundTint="#87CEEB"
-        android:textColor="@android:color/black" />
-</RelativeLayout>
+        <Button
+            android:id="@+id/btn_retour_menu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Retour au menu"
+            android:backgroundTint="#95A5A6"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+</LinearLayout>

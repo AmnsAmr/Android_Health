@@ -48,9 +48,9 @@ public class page_dossier_medical extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         patientId = currentUser.id;
 
-        // Setup reusable header
+        // Setup reusable header with sign out functionality
         View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeader(this, headerView, "Dossier Médical");
+        UIHelper.setupHeaderWithSignOut(this, headerView, "Dossier Médical", authManager);
 
         initializeViews();
         loadPatientData();
@@ -85,22 +85,45 @@ public class page_dossier_medical extends AppCompatActivity {
         Cursor cursor = null;
 
         try {
-            // Charger les informations du patient depuis la table users
+            // Load patient information from users and patients tables
             cursor = db.rawQuery(
-                    "SELECT full_name, email FROM users WHERE id = ?",
-                    new String[]{String.valueOf(patientId)}
+                "SELECT u.full_name, u.email, p.date_of_birth, p.blood_type, p.emergency_contact " +
+                "FROM users u LEFT JOIN patients p ON u.id = p.user_id " +
+                "WHERE u.id = ?",
+                new String[]{String.valueOf(patientId)}
             );
 
             if (cursor.moveToFirst()) {
                 String name = cursor.getString(0);
+                String birthDate = cursor.getString(2);
+                String bloodType = cursor.getString(3);
+                String emergencyContact = cursor.getString(4);
+                
                 tvPatientName.setText(name);
+                tvBloodType.setText(bloodType != null ? bloodType : "Non renseigné");
+                
+                // Calculate age from birth date
+                if (birthDate != null && !birthDate.isEmpty()) {
+                    try {
+                        String[] dateParts = birthDate.split("-");
+                        if (dateParts.length == 3) {
+                            int birthYear = Integer.parseInt(dateParts[0]);
+                            int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
+                            int age = currentYear - birthYear;
+                            tvPatientAge.setText(age + " ans");
+                        } else {
+                            tvPatientAge.setText("Non renseigné");
+                        }
+                    } catch (Exception e) {
+                        tvPatientAge.setText("Non renseigné");
+                    }
+                } else {
+                    tvPatientAge.setText("Non renseigné");
+                }
+                
+                // Load allergies from medical records
+                loadAllergies();
             }
-
-            // Pour l'instant, on affiche des données statiques
-            // Vous pouvez les remplacer par des données de la base plus tard
-            tvPatientAge.setText("35 ans");
-            tvBloodType.setText("A+");
-            tvAllergies.setText("Pénicilline, Pollen");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,6 +131,105 @@ public class page_dossier_medical extends AppCompatActivity {
         } finally {
             if (cursor != null) cursor.close();
         }
+    }
+    
+    private void loadAllergies() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        
+        try {
+            cursor = db.rawQuery(
+                "SELECT diagnosis FROM medical_records " +
+                "WHERE patient_id = ? AND (diagnosis LIKE '%allergie%' OR diagnosis LIKE '%allergique%') " +
+                "ORDER BY created_at DESC LIMIT 3",
+                new String[]{String.valueOf(patientId)}
+            );
+            
+            StringBuilder allergies = new StringBuilder();
+            while (cursor.moveToNext()) {
+                if (allergies.length() > 0) allergies.append(", ");
+                allergies.append(cursor.getString(0));
+            }
+            
+            tvAllergies.setText(allergies.length() > 0 ? allergies.toString() : "Aucune allergie connue");
+            
+        } catch (Exception e) {
+            tvAllergies.setText("Non renseigné");
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+    }
+    
+    private void loadRecentTestResults() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        // Hide all result cards initially
+        cardResultat1.setVisibility(View.GONE);
+        cardResultat2.setVisibility(View.GONE);
+        cardResultat3.setVisibility(View.GONE);
+        
+        try {
+            Cursor cursor = db.rawQuery(
+                "SELECT tr.id, tr.test_name, tr.result, tr.test_date " +
+                "FROM test_results tr " +
+                "WHERE tr.patient_id = ? " +
+                "ORDER BY tr.test_date DESC LIMIT 3",
+                new String[]{String.valueOf(patientId)}
+            );
+            
+            CardView[] cards = {cardResultat1, cardResultat2, cardResultat3};
+            int cardIndex = 0;
+            
+            while (cursor.moveToNext() && cardIndex < 3) {
+                final int testId = cursor.getInt(0);
+                final String testName = cursor.getString(1);
+                final String result = cursor.getString(2);
+                final String testDate = cursor.getString(3);
+                
+                cards[cardIndex].setVisibility(View.VISIBLE);
+                cards[cardIndex].setOnClickListener(v -> showTestResultDetails(testId, testName, result, testDate));
+                
+                cardIndex++;
+            }
+            cursor.close();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void showTestResultDetails(int testId, String testName, String result, String testDate) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        StringBuilder details = new StringBuilder();
+        
+        details.append("TEST: ").append(testName).append("\n\n");
+        details.append("RÉSULTAT:\n").append(result).append("\n\n");
+        details.append("DATE: ").append(testDate != null ? testDate : "Non spécifiée").append("\n\n");
+        
+        // Load comments
+        Cursor cursor = db.rawQuery(
+            "SELECT trc.comment, u.full_name " +
+            "FROM test_result_comments trc " +
+            "JOIN users u ON trc.doctor_id = u.id " +
+            "WHERE trc.test_result_id = ? " +
+            "ORDER BY trc.created_at DESC",
+            new String[]{String.valueOf(testId)}
+        );
+        
+        if (cursor.moveToFirst()) {
+            details.append("COMMENTAIRES MÉDICAUX:\n");
+            do {
+                details.append("• Dr. ").append(cursor.getString(1)).append(": ");
+                details.append(cursor.getString(0)).append("\n");
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Détails du Test")
+            .setMessage(details.toString())
+            .setPositiveButton("Fermer", null)
+            .show();
     }
 
     private void setupClickListeners() {
@@ -133,27 +255,24 @@ public class page_dossier_medical extends AppCompatActivity {
         cardResultatsLab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Résultats de Laboratoire", Toast.LENGTH_SHORT).show();
-                // TODO: Ouvrir page détaillée des résultats de laboratoire
+                Intent intent = new Intent(page_dossier_medical.this, MedicalHistoryTimelineActivity.class);
+                startActivity(intent);
             }
         });
 
         cardHistorique.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Historique Médical", Toast.LENGTH_SHORT).show();
-                // TODO: Ouvrir page historique médical
+                Intent intent = new Intent(page_dossier_medical.this, PatientMedicalRecordsActivity.class);
+                startActivity(intent);
             }
         });
 
         cardMedicaments.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Médicaments Actuels", Toast.LENGTH_SHORT).show();
-                // TODO: Ouvrir page médicaments
+                Intent intent = new Intent(page_dossier_medical.this, page_medicament.class);
+                startActivity(intent);
             }
         });
 
@@ -166,32 +285,7 @@ public class page_dossier_medical extends AppCompatActivity {
             }
         });
 
-        // Cartes résultats individuels
-        cardResultat1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Détails: Bilan Sanguin Complet", Toast.LENGTH_SHORT).show();
-                // TODO: Afficher détails du résultat
-            }
-        });
-
-        cardResultat2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Détails: Analyse d'Urine", Toast.LENGTH_SHORT).show();
-                // TODO: Afficher détails du résultat
-            }
-        });
-
-        cardResultat3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Détails: ECG", Toast.LENGTH_SHORT).show();
-                // TODO: Afficher détails du résultat
-            }
-        });
+        // Cartes résultats individuels - Load from database
+        loadRecentTestResults();
     }
 }
