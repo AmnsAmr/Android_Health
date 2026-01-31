@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -35,8 +36,8 @@ public class ComposeMessageActivity extends AppCompatActivity {
             return;
         }
 
-        View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeaderWithSignOut(this, headerView, "Nouveau Message", authManager);
+        View userProfileHeader = findViewById(R.id.userProfileHeader);
+        UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
         
         spinnerDoctors = findViewById(R.id.spinnerDoctors);
         etMessage = findViewById(R.id.etMessage);
@@ -52,16 +53,21 @@ public class ComposeMessageActivity extends AppCompatActivity {
         
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT u.id, u.full_name, d.specialization " +
+            "SELECT u.id, u.full_name, COALESCE(d.specialization, 'Médecin') " +
             "FROM users u " +
-            "JOIN doctors d ON u.id = d.user_id " +
-            "WHERE u.role = 'doctor'", null);
+            "LEFT JOIN doctors d ON u.id = d.user_id " +
+            "WHERE u.role = 'doctor' AND u.is_active = 1 " +
+            "ORDER BY u.full_name", null);
 
         while (cursor.moveToNext()) {
             doctorIds.add(cursor.getInt(0));
             doctorNames.add("Dr. " + cursor.getString(1) + " - " + cursor.getString(2));
         }
         cursor.close();
+        
+        if (doctorIds.isEmpty()) {
+            Toast.makeText(this, "Aucun médecin disponible. Contactez l'administrateur.", Toast.LENGTH_LONG).show();
+        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
             android.R.layout.simple_spinner_item, doctorNames);
@@ -84,6 +90,8 @@ public class ComposeMessageActivity extends AppCompatActivity {
         int selectedPosition = spinnerDoctors.getSelectedItemPosition();
         int doctorId = doctorIds.get(selectedPosition);
         int currentUserId = authManager.getCurrentUser().id;
+        
+        Log.d("ComposeMessage", "Sending message from patient " + currentUserId + " to doctor " + doctorId);
 
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -93,6 +101,8 @@ public class ComposeMessageActivity extends AppCompatActivity {
         values.put("is_urgent", 0);
         
         long result = db.insert("messages", null, values);
+        
+        Log.d("ComposeMessage", "Insert result: " + result);
         
         if (result != -1) {
             Toast.makeText(this, "Message envoyé", Toast.LENGTH_SHORT).show();

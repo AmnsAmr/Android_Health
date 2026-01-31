@@ -72,6 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -112,10 +113,11 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@android:id/text1"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Dr. Rachid Bennani"
+                                    android:text=""
                                     android:textColor="#2C3E50"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
@@ -123,17 +125,18 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="10:45"
+                                    android:text=""
                                     android:textColor="#95A5A6"
                                     android:textSize="12sp" />
 
                             </LinearLayout>
 
                             <TextView
+                                android:id="@android:id/text2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Cardiologue"
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="13sp" />
 
@@ -143,7 +146,7 @@
                                 android:layout_marginTop="8dp"
                                 android:ellipsize="end"
                                 android:maxLines="2"
-                                android:text="Vos résultats sont normaux. Continuez le traitement."
+                                android:text=""
                                 android:textColor="#2C3E50"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -157,10 +160,11 @@
                             android:layout_marginLeft="8dp"
                             android:background="#E74C3C"
                             android:gravity="center"
-                            android:text="2"
+                            android:text=""
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:visibility="gone" />
 
                     </LinearLayout>
 
@@ -174,6 +178,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -212,10 +217,11 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@android:id/text1"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Dr. Fatima Zahra"
+                                    android:text=""
                                     android:textColor="#2C3E50"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
@@ -223,17 +229,18 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Hier"
+                                    android:text=""
                                     android:textColor="#95A5A6"
                                     android:textSize="12sp" />
 
                             </LinearLayout>
 
                             <TextView
+                                android:id="@android:id/text2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Médecin généraliste"
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="13sp" />
 
@@ -243,7 +250,7 @@
                                 android:layout_marginTop="8dp"
                                 android:ellipsize="end"
                                 android:maxLines="2"
-                                android:text="D'accord, merci pour votre réponse docteur."
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="14sp" />
 
@@ -261,6 +268,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -299,10 +307,11 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@android:id/text1"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Dr. Karim El Alaoui"
+                                    android:text=""
                                     android:textColor="#2C3E50"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
@@ -310,17 +319,18 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="20 Nov"
+                                    android:text=""
                                     android:textColor="#95A5A6"
                                     android:textSize="12sp" />
 
                             </LinearLayout>
 
                             <TextView
+                                android:id="@android:id/text2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Dermatologue"
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="13sp" />
 
@@ -330,7 +340,7 @@
                                 android:layout_marginTop="8dp"
                                 android:ellipsize="end"
                                 android:maxLines="2"
-                                android:text="Le traitement fait effet. Revoir dans 2 semaines."
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="14sp" />
 
@@ -348,6 +358,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="80dp"
+                android:visibility="gone"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -386,10 +397,11 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@android:id/text1"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Secrétariat Médical"
+                                    android:text=""
                                     android:textColor="#2C3E50"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
@@ -397,17 +409,18 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="09:15"
+                                    android:text=""
                                     android:textColor="#95A5A6"
                                     android:textSize="12sp" />
 
                             </LinearLayout>
 
                             <TextView
+                                android:id="@android:id/text2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Service administratif"
+                                android:text=""
                                 android:textColor="#7F8C8D"
                                 android:textSize="13sp" />
 
@@ -417,7 +430,7 @@
                                 android:layout_marginTop="8dp"
                                 android:ellipsize="end"
                                 android:maxLines="2"
-                                android:text="Votre rendez-vous du 02 Décembre est confirmé."
+                                android:text=""
                                 android:textColor="#2C3E50"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -430,10 +443,11 @@
                             android:layout_marginLeft="8dp"
                             android:background="#4CAF50"
                             android:gravity="center"
-                            android:text="1"
+                            android:text=""
                             android:textColor="#FFFFFF"
                             android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:visibility="gone" />
 
                     </LinearLayout>
 

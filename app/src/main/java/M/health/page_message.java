@@ -125,8 +125,16 @@ public class page_message extends AppCompatActivity {
                 
                 String displayName = role.equals("doctor") ? "Dr. " + fullName : fullName;
                 
-                cards[cardIndex].setVisibility(View.VISIBLE);
-                cards[cardIndex].setOnClickListener(v -> 
+                CardView card = cards[cardIndex];
+                card.setVisibility(View.VISIBLE);
+                
+                // Update TextViews with real data
+                android.widget.TextView tvName = card.findViewById(android.R.id.text1);
+                android.widget.TextView tvSpec = card.findViewById(android.R.id.text2);
+                if (tvName != null) tvName.setText(displayName);
+                if (tvSpec != null) tvSpec.setText(specialization);
+                
+                card.setOnClickListener(v -> 
                     ouvrirConversation(otherUserId, displayName, specialization));
                 
                 cardIndex++;

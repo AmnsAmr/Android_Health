@@ -4,19 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.*;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -126,15 +114,20 @@ public class UrgentRequestsActivity extends AppCompatActivity {
     }
 
     private void sendUrgentMessage(int doctorId, String message) {
+        int secretaryId = authManager.getUserId();
+        Log.d("UrgentRequests", "Sending urgent message from secretary " + secretaryId + " to doctor " + doctorId);
+        
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         
         ContentValues values = new ContentValues();
-        values.put("sender_id", authManager.getUserId());
+        values.put("sender_id", secretaryId);
         values.put("receiver_id", doctorId);
         values.put("message", message);
         values.put("is_urgent", 1);
 
         long result = db.insert("messages", null, values);
+        
+        Log.d("UrgentRequests", "Insert result: " + result);
         
         if (result != -1) {
             Toast.makeText(this, "Message urgent envoyé", Toast.LENGTH_SHORT).show();

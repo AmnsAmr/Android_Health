@@ -89,6 +89,15 @@ public class DoctorDashboardActivity extends AppCompatActivity {
             }
         });
 
+        LinearLayout cardMessages = findViewById(R.id.cardMessages);
+        cardMessages.setOnClickListener(v -> startActivity(new Intent(this, DoctorMessagesActivity.class)));
+        
+        // DEBUG: Add long click to open diagnostic
+        cardMessages.setOnLongClickListener(v -> {
+            startActivity(new Intent(this, DatabaseDiagnosticActivity.class));
+            return true;
+        });
+
         loadDoctorInfo();
         loadStats();
     }

@@ -134,6 +134,12 @@
             android:name=".DoctorPrescriptionsActivity"
             android:exported="false" />
         <activity
+            android:name=".DoctorMessagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DoctorComposeMessageActivity"
+            android:exported="false" />
+        <activity
             android:name=".DoctorRefillRequestsActivity"
             android:exported="false" />
         <activity
