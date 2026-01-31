@@ -27,32 +27,41 @@ public class PatientMedicalRecordsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_patient_medical_records);
-
-        dbHelper = new DatabaseHelper(this);
-        authManager = AuthManager.getInstance(this);
         
-        if (!authManager.isLoggedIn() || !authManager.hasPermission("patient_view_own_records")) {
-            Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+        try {
+            setContentView(R.layout.activity_patient_medical_records);
+
+            dbHelper = new DatabaseHelper(this);
+            authManager = AuthManager.getInstance(this);
+            
+            if (!authManager.isLoggedIn() || !authManager.hasPermission("patient_view_own_records")) {
+                Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
+            patientId = authManager.getCurrentUser().id;
+            
+            View userProfileHeader = findViewById(R.id.userProfileHeader);
+            if (userProfileHeader != null) {
+                UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
+            }
+            
+            lvMedicalRecords = findViewById(R.id.lvMedicalRecords);
+            
+            medicalRecords = new ArrayList<>();
+            adapter = new MedicalRecordAdapter();
+            lvMedicalRecords.setAdapter(adapter);
+            
+            loadMedicalRecords();
+            
+            lvMedicalRecords.setOnItemClickListener((parent, view, position, id) -> 
+                showMedicalRecordDetails(medicalRecords.get(position)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
-            return;
         }
-
-        patientId = authManager.getCurrentUser().id;
-        
-        View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeaderWithSignOut(this, headerView, "Mes Dossiers Médicaux", authManager);
-        
-        lvMedicalRecords = findViewById(R.id.lvMedicalRecords);
-        
-        medicalRecords = new ArrayList<>();
-        adapter = new MedicalRecordAdapter();
-        lvMedicalRecords.setAdapter(adapter);
-        
-        loadMedicalRecords();
-        
-        lvMedicalRecords.setOnItemClickListener((parent, view, position, id) -> 
-            showMedicalRecordDetails(medicalRecords.get(position)));
     }
 
     private void loadMedicalRecords() {

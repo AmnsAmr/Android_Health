@@ -162,11 +162,6 @@ public class page_dossier_medical extends AppCompatActivity {
     private void loadRecentTestResults() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         
-        // Hide all result cards initially
-        cardResultat1.setVisibility(View.GONE);
-        cardResultat2.setVisibility(View.GONE);
-        cardResultat3.setVisibility(View.GONE);
-        
         try {
             Cursor cursor = db.rawQuery(
                 "SELECT tr.id, tr.test_name, tr.result, tr.test_date " +
@@ -176,6 +171,16 @@ public class page_dossier_medical extends AppCompatActivity {
                 new String[]{String.valueOf(patientId)}
             );
             
+            TextView[] testNames = {
+                findViewById(R.id.tvTestName1),
+                findViewById(R.id.tvTestName2),
+                findViewById(R.id.tvTestName3)
+            };
+            TextView[] testDates = {
+                findViewById(R.id.tvTestDate1),
+                findViewById(R.id.tvTestDate2),
+                findViewById(R.id.tvTestDate3)
+            };
             CardView[] cards = {cardResultat1, cardResultat2, cardResultat3};
             int cardIndex = 0;
             
@@ -185,6 +190,8 @@ public class page_dossier_medical extends AppCompatActivity {
                 final String result = cursor.getString(2);
                 final String testDate = cursor.getString(3);
                 
+                testNames[cardIndex].setText(testName);
+                testDates[cardIndex].setText(testDate);
                 cards[cardIndex].setVisibility(View.VISIBLE);
                 cards[cardIndex].setOnClickListener(v -> showTestResultDetails(testId, testName, result, testDate));
                 
@@ -259,11 +266,13 @@ public class page_dossier_medical extends AppCompatActivity {
             }
         });
 
-        cardHistorique.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        cardHistorique.setOnClickListener(v -> {
+            try {
                 Intent intent = new Intent(page_dossier_medical.this, PatientMedicalRecordsActivity.class);
                 startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(page_dossier_medical.this, "Erreur: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 

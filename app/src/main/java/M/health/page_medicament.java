@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,17 +18,9 @@ public class page_medicament extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private AuthManager authManager;
-
-    // UI Components
-    private ImageView btnBack;
-    private ImageView btnAddReminder;
-    private Button btnMarquerPris;
-    private Button btnRenouveler1;
-    private Button btnRenouveler2;
-    private Button btnDetails3;
-    private CardView cardMedicament1;
-    private CardView cardMedicament2;
-    private CardView cardMedicament3;
+    private ImageView btnBack, btnAddReminder;
+    private CardView cardMedicament1, cardMedicament2, cardMedicament3;
+    private Button btnRenouveler1, btnRenouveler2, btnDetails3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +62,6 @@ public class page_medicament extends AppCompatActivity {
     private void initializeViews() {
         btnBack = findViewById(R.id.btnBack);
         btnAddReminder = findViewById(R.id.btnAddReminder);
-        btnMarquerPris = findViewById(R.id.btnMarquerPris);
         btnRenouveler1 = findViewById(R.id.btnRenouveler1);
         btnRenouveler2 = findViewById(R.id.btnRenouveler2);
         btnDetails3 = findViewById(R.id.btnDetails3);
@@ -79,97 +71,9 @@ public class page_medicament extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // Bouton Retour
-        if (btnBack != null) {
-            btnBack.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finish(); // Retour à l'écran précédent
-                }
-            });
-        }
-
-        // Bouton Ajouter un rappel
-        if (btnAddReminder != null) {
-            btnAddReminder.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(page_medicament.this,
-                            "Ajouter un rappel - À venir", Toast.LENGTH_SHORT).show();
-                    // TODO: Créer l'activité pour ajouter un rappel
-                }
-            });
-        }
-
-        // Bouton Marquer comme pris
-        if (btnMarquerPris != null) {
-            btnMarquerPris.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    marquerMedicamentPris("Doliprane 1000mg");
-                }
-            });
-        }
-
-        // Bouton Renouveler Médicament 1
-        if (btnRenouveler1 != null) {
-            btnRenouveler1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    renouvellerOrdonnance("Doliprane 1000mg");
-                }
-            });
-        }
-
-        // Bouton Renouveler Médicament 2 (urgent)
-        if (btnRenouveler2 != null) {
-            btnRenouveler2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    renouvellerOrdonnance("Amoxicilline 500mg");
-                }
-            });
-        }
-
-        // Bouton Détails Médicament 3
-        if (btnDetails3 != null) {
-            btnDetails3.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    afficherDetailsMedicament("Aspirine 100mg");
-                }
-            });
-        }
-
-        // Click sur carte médicament 1
-        if (cardMedicament1 != null) {
-            cardMedicament1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    afficherDetailsMedicament("Doliprane 1000mg");
-                }
-            });
-        }
-
-        // Click sur carte médicament 2
-        if (cardMedicament2 != null) {
-            cardMedicament2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    afficherDetailsMedicament("Amoxicilline 500mg");
-                }
-            });
-        }
-
-        // Click sur carte médicament 3
-        if (cardMedicament3 != null) {
-            cardMedicament3.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    afficherDetailsMedicament("Aspirine 100mg");
-                }
-            });
-        }
+        if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+        if (btnAddReminder != null) btnAddReminder.setOnClickListener(v -> 
+            Toast.makeText(this, "Ajouter un rappel - À venir", Toast.LENGTH_SHORT).show());
     }
 
     private void loadMedicationsData(int patientId) {
@@ -199,82 +103,63 @@ public class page_medicament extends AppCompatActivity {
     }
     
     private void updateMedicationCards(Cursor cursor) {
-        // Hide all cards initially
-        cardMedicament1.setVisibility(View.GONE);
-        cardMedicament2.setVisibility(View.GONE);
-        cardMedicament3.setVisibility(View.GONE);
-        
+        TextView[] medNames = {
+            findViewById(R.id.tvMedName1),
+            findViewById(R.id.tvMedName2),
+            findViewById(R.id.tvMedName3)
+        };
+        TextView[] medDosages = {
+            findViewById(R.id.tvMedDosage1),
+            findViewById(R.id.tvMedDosage2),
+            findViewById(R.id.tvMedDosage3)
+        };
+        CardView[] cards = {cardMedicament1, cardMedicament2, cardMedicament3};
+        Button[] renewButtons = {btnRenouveler1, btnRenouveler2, btnDetails3};
         int cardIndex = 0;
+        
         while (cursor.moveToNext() && cardIndex < 3) {
-            String medication = cursor.getString(1);
-            String dosage = cursor.getString(2);
-            String doctorName = cursor.getString(4);
+            final String medication = cursor.getString(1);
+            final String dosage = cursor.getString(2);
+            final int prescriptionId = cursor.getInt(0);
             
-            // Show and update the appropriate card
-            CardView card = cardIndex == 0 ? cardMedicament1 : 
-                           cardIndex == 1 ? cardMedicament2 : cardMedicament3;
-            card.setVisibility(View.VISIBLE);
+            medNames[cardIndex].setText(medication);
+            medDosages[cardIndex].setText(dosage);
+            cards[cardIndex].setVisibility(View.VISIBLE);
+            cards[cardIndex].setOnClickListener(v -> afficherDetailsMedicament(medication));
             
-            // Update medication name in the card (you'll need to add TextViews to the layout)
-            // For now, we'll update the click listeners with real data
-            final String finalMedication = medication;
-            card.setOnClickListener(v -> afficherDetailsMedicament(finalMedication));
+            if (renewButtons[cardIndex] != null) {
+                renewButtons[cardIndex].setOnClickListener(v -> renouvellerOrdonnance(prescriptionId));
+            }
             
             cardIndex++;
         }
     }
 
-    private void marquerMedicamentPris(String medicamentNom) {
-        // TODO: Enregistrer la prise du médicament dans la base de données
-        Toast.makeText(this,
-                "✓ " + medicamentNom + " marqué comme pris",
-                Toast.LENGTH_SHORT).show();
-
-        // Mettre à jour l'interface si nécessaire
-        // Par exemple, changer la couleur ou désactiver le bouton
-    }
-
-    private void renouvellerOrdonnance(String medicamentNom) {
+private void renouvellerOrdonnance(int prescriptionId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        AuthManager.User currentUser = authManager.getCurrentUser();
         
         try {
-            // Find the prescription ID for this medication
-            Cursor cursor = db.rawQuery(
-                "SELECT id FROM prescriptions WHERE patient_id = ? AND medication = ? ORDER BY created_at DESC LIMIT 1",
-                new String[]{String.valueOf(currentUser.id), medicamentNom});
+            Cursor existingRequest = db.rawQuery(
+                "SELECT id FROM prescription_refill_requests WHERE prescription_id = ? AND status = 'pending'",
+                new String[]{String.valueOf(prescriptionId)});
             
-            if (cursor.moveToFirst()) {
-                int prescriptionId = cursor.getInt(0);
-                cursor.close();
-                
-                // Check if there's already a pending request
-                Cursor existingRequest = db.rawQuery(
-                    "SELECT id FROM prescription_refill_requests WHERE prescription_id = ? AND status = 'pending'",
-                    new String[]{String.valueOf(prescriptionId)});
-                
-                if (existingRequest.moveToFirst()) {
-                    existingRequest.close();
-                    Toast.makeText(this, "Une demande de renouvellement est déjà en cours", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            if (existingRequest.moveToFirst()) {
                 existingRequest.close();
-                
-                // Create new refill request
-                android.content.ContentValues values = new android.content.ContentValues();
-                values.put("prescription_id", prescriptionId);
-                values.put("status", "pending");
-                
-                long result = db.insert("prescription_refill_requests", null, values);
-                
-                if (result != -1) {
-                    Toast.makeText(this, "✓ Demande de renouvellement envoyée pour " + medicamentNom, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "Erreur lors de l'envoi de la demande", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(this, "Une demande de renouvellement est déjà en cours", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            existingRequest.close();
+            
+            android.content.ContentValues values = new android.content.ContentValues();
+            values.put("prescription_id", prescriptionId);
+            values.put("status", "pending");
+            
+            long result = db.insert("prescription_refill_requests", null, values);
+            
+            if (result != -1) {
+                Toast.makeText(this, "✓ Demande de renouvellement envoyée", Toast.LENGTH_LONG).show();
             } else {
-                cursor.close();
-                Toast.makeText(this, "Prescription non trouvée", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Erreur lors de l'envoi de la demande", Toast.LENGTH_SHORT).show();
             }
             
         } catch (Exception e) {
@@ -284,14 +169,7 @@ public class page_medicament extends AppCompatActivity {
     }
 
     private void afficherDetailsMedicament(String medicamentNom) {
-        // TODO: Ouvrir une activité détaillée pour le médicament
-        Toast.makeText(this,
-                "Détails de " + medicamentNom,
-                Toast.LENGTH_SHORT).show();
-
-        // Intent intent = new Intent(this, MedicamentDetailsActivity.class);
-        // intent.putExtra("medicament_nom", medicamentNom);
-        // startActivity(intent);
+        Toast.makeText(this, "Détails de " + medicamentNom, Toast.LENGTH_SHORT).show();
     }
 
     @Override

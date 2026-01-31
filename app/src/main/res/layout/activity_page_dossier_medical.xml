@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="#F5F7FA">
 
-    <!-- ==================== HEADER ==================== -->
     <RelativeLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
@@ -52,7 +51,6 @@
 
     </RelativeLayout>
 
-    <!-- ==================== CONTENU ==================== -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -65,7 +63,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- ==================== INFORMATIONS PERSONNELLES ==================== -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -94,7 +91,6 @@
                         android:layout_marginBottom="12dp"
                         android:background="#E0E0E0" />
 
-                    <!-- Nom -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -113,13 +109,11 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Ahmed Alami"
                             android:textColor="#2C3E50"
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Âge -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -138,13 +132,11 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="35 ans"
                             android:textColor="#2C3E50"
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Groupe sanguin -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -163,13 +155,11 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="A+"
                             android:textColor="#E74C3C"
                             android:textSize="14sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
-                    <!-- Allergies -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -187,7 +177,6 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Pénicilline, Pollen"
                             android:textColor="#E74C3C"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -197,9 +186,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- ==================== 4 CATÉGORIES ==================== -->
-
-            <!-- Ligne 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -207,11 +193,10 @@
                 android:weightSum="2"
                 android:layout_marginBottom="12dp">
 
-                <!-- Résultats Laboratoire -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardResultatsLab"
                     android:layout_width="0dp"
-                    android:layout_height="140dp"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginRight="6dp"
                     android:clickable="true"
@@ -226,47 +211,32 @@
                         android:background="#E8F5E9"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="3 nouveaux"
-                            android:background="#4CAF50"
-                            android:textColor="#FFFFFF"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:paddingLeft="8dp"
-                            android:paddingRight="8dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp" />
+                        android:padding="12dp">
 
                         <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_info_details"
                             app:tint="#4CAF50" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="Résultats de\nLaboratoire"
+                            android:text="Résultats\nLaboratoire"
                             android:textColor="#2C3E50"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
 
-                <!-- Historique -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardHistorique"
                     android:layout_width="0dp"
-                    android:layout_height="140dp"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginLeft="6dp"
                     android:clickable="true"
@@ -281,31 +251,23 @@
                         android:background="#E3F2FD"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="12dp">
 
                         <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_recent_history"
                             app:tint="#2196F3" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
                             android:text="Historique\nMédical"
                             android:textColor="#2C3E50"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="12 consultations"
-                            android:textColor="#7F8C8D"
-                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -313,7 +275,6 @@
 
             </LinearLayout>
 
-            <!-- Ligne 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -321,11 +282,10 @@
                 android:weightSum="2"
                 android:layout_marginBottom="16dp">
 
-                <!-- Médicaments -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardMedicaments"
                     android:layout_width="0dp"
-                    android:layout_height="140dp"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginRight="6dp"
                     android:clickable="true"
@@ -340,41 +300,32 @@
                         android:background="#FFF3E0"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="12dp">
 
                         <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_agenda"
                             app:tint="#FF9800" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
                             android:text="Médicaments\nActuels"
                             android:textColor="#2C3E50"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="5 ordonnances"
-                            android:textColor="#7F8C8D"
-                            android:textSize="11sp" />
 
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
 
-                <!-- Imagerie -->
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardImagerie"
                     android:layout_width="0dp"
-                    android:layout_height="140dp"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginLeft="6dp"
                     android:clickable="true"
@@ -389,31 +340,23 @@
                         android:background="#F3E5F5"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="12dp">
 
                         <ImageView
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_gallery"
                             app:tint="#9C27B0" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:text="Rapports\nd'Imagerie"
+                            android:text="Rapports\nImagerie"
                             android:textColor="#2C3E50"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="8 examens"
-                            android:textColor="#7F8C8D"
-                            android:textSize="11sp" />
 
                     </LinearLayout>
 
@@ -421,7 +364,6 @@
 
             </LinearLayout>
 
-            <!-- ==================== DERNIERS RÉSULTATS ==================== -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -431,12 +373,12 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Résultat 1 (Simplifié) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResultat1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:visibility="gone"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="2dp">
 
@@ -447,48 +389,31 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tvTestName1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bilan Sanguin Complet"
                         android:textColor="#2C3E50"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvTestDate1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="📅 18 Décembre 2025"
                         android:textColor="#7F8C8D"
                         android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="👨‍⚕️ Dr. Rachid Bennani"
-                        android:textColor="#7F8C8D"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="✓ Résultats normaux"
-                        android:textColor="#4CAF50"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Résultat 2 -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResultat2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:visibility="gone"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="2dp">
 
@@ -499,48 +424,31 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tvTestName2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Analyse d'Urine"
                         android:textColor="#2C3E50"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvTestDate2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="📅 10 Décembre 2025"
                         android:textColor="#7F8C8D"
                         android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="👨‍⚕️ Dr. Fatima Zahra"
-                        android:textColor="#7F8C8D"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="✓ Résultats normaux"
-                        android:textColor="#4CAF50"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
 
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Résultat 3 -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResultat3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="80dp"
+                android:visibility="gone"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="2dp">
 
@@ -551,37 +459,20 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/tvTestName3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Électrocardiogramme (ECG)"
                         android:textColor="#2C3E50"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvTestDate3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="📅 02 Décembre 2025"
                         android:textColor="#7F8C8D"
                         android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="👨‍⚕️ Dr. Rachid Bennani"
-                        android:textColor="#7F8C8D"
-                        android:textSize="13sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="⚠ À revoir avec le médecin"
-                        android:textColor="#FF9800"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
 
                 </LinearLayout>
 

@@ -83,6 +83,9 @@
             android:name=".MedicalHistoryTimelineActivity"
             android:exported="false" />
         <activity
+            android:name=".PatientMedicalRecordsActivity"
+            android:exported="false" />
+        <activity
             android:name=".page_medicament"
             android:exported="false" />
         <activity

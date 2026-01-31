@@ -6,8 +6,8 @@
     android:padding="16dp">
 
     <include
-        android:id="@+id/headerLayout"
-        layout="@layout/layout_header" />
+        android:id="@+id/userProfileHeader"
+        layout="@layout/layout_user_profile_header" />
 
     <TextView
         android:layout_width="match_parent"
