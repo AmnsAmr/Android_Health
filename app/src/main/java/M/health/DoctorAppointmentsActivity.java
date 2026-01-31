@@ -5,8 +5,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,8 +20,10 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private AuthManager authManager;
     private ListView appointmentsListView;
+    private Spinner spinnerFilter;
     private int doctorId;
     private List<Appointment> appointments;
+    private String currentFilter = "scheduled";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +48,10 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
 
         doctorId = authManager.getUserId();
         appointmentsListView = findViewById(R.id.appointmentsListView);
+        spinnerFilter = findViewById(R.id.spinnerFilter);
         appointments = new ArrayList<>();
+
+        setupFilterSpinner();
 
         appointmentsListView.setOnItemClickListener((parent, view, position, id) ->
                 showAppointmentOptions(appointments.get(position)));
@@ -51,15 +59,47 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
         loadAppointments();
     }
 
+    private void setupFilterSpinner() {
+        String[] filters = {"À venir", "Tous", "Terminés", "Annulés"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, filters);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFilter.setAdapter(adapter);
+
+        spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0: currentFilter = "scheduled"; break;
+                    case 1: currentFilter = "all"; break;
+                    case 2: currentFilter = "completed"; break;
+                    case 3: currentFilter = "cancelled"; break;
+                }
+                loadAppointments();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
     private void loadAppointments() {
         appointments.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String whereClause = "a.doctor_id = ?";
+        if (!currentFilter.equals("all")) {
+            whereClause += " AND a.status = '" + currentFilter + "'";
+        }
+
+        String orderBy = currentFilter.equals("scheduled") ? "ASC" : "DESC";
 
         Cursor cursor = db.rawQuery(
                 "SELECT a.id, u.full_name, a.appointment_datetime, a.status, a.notes " +
                         "FROM appointments a " +
                         "JOIN users u ON a.patient_id = u.id " +
-                        "WHERE a.doctor_id = ? ORDER BY a.appointment_datetime DESC",
+                        "WHERE " + whereClause + " " +
+                        "ORDER BY a.appointment_datetime " + orderBy,
                 new String[]{String.valueOf(doctorId)});
 
         List<String> appointmentStrings = new ArrayList<>();
@@ -83,21 +123,27 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
     }
 
     private void showAppointmentOptions(Appointment appointment) {
-        String[] options = {"Voir détails", "Marquer comme terminé", "Annuler"};
+        List<String> optionsList = new ArrayList<>();
+        optionsList.add("Voir détails");
+        
+        if (appointment.status.equals("scheduled")) {
+            optionsList.add("Marquer comme terminé");
+            optionsList.add("Annuler");
+        }
+
+        String[] options = optionsList.toArray(new String[0]);
 
         new AlertDialog.Builder(this)
                 .setTitle(appointment.patientName)
                 .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0:
-                            showAppointmentDetails(appointment);
-                            break;
-                        case 1:
-                            updateAppointmentStatus(appointment.id, "completed");
-                            break;
-                        case 2:
-                            updateAppointmentStatus(appointment.id, "cancelled");
-                            break;
+                    if (which == 0) {
+                        showAppointmentDetails(appointment);
+                    } else if (appointment.status.equals("scheduled")) {
+                        if (which == 1) {
+                            completeAppointment(appointment.id);
+                        } else if (which == 2) {
+                            cancelAppointment(appointment.id);
+                        }
                     }
                 })
                 .show();
@@ -130,6 +176,14 @@ public class DoctorAppointmentsActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Erreur lors de la mise à jour", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void completeAppointment(int appointmentId) {
+        updateAppointmentStatus(appointmentId, "completed");
+    }
+
+    private void cancelAppointment(int appointmentId) {
+        updateAppointmentStatus(appointmentId, "cancelled");
     }
 
     private void redirectToLogin() {
