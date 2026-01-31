@@ -33,8 +33,8 @@ public class PatientAppointmentsActivity extends AppCompatActivity {
 
         patientId = authManager.getCurrentUser().id;
         
-        View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeaderWithSignOut(this, headerView, "Mes Rendez-vous", authManager);
+        View userProfileHeader = findViewById(R.id.userProfileHeader);
+        UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
         
         appointmentsContainer = findViewById(R.id.appointmentsContainer);
         

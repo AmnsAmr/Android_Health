@@ -53,9 +53,8 @@ public class page_medicament extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         int userId = currentUser.id;
 
-        // Setup reusable header with sign out functionality
-        View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeaderWithSignOut(this, headerView, "Mes Médicaments", authManager);
+        // Custom header with back button
+        // Header elements are defined in the layout file
 
         // Initialize Views
         initializeViews();

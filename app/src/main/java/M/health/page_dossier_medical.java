@@ -48,9 +48,8 @@ public class page_dossier_medical extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         patientId = currentUser.id;
 
-        // Setup reusable header with sign out functionality
-        View headerView = findViewById(R.id.headerLayout);
-        UIHelper.setupHeaderWithSignOut(this, headerView, "Dossier Médical", authManager);
+        // Custom header with back button
+        // Header elements are defined in the layout file
 
         initializeViews();
         loadPatientData();
