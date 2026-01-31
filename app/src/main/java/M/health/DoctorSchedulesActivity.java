@@ -1,29 +1,32 @@
 package M.health;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
+import androidx.appcompat.app.AppCompatActivity;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class DoctorSchedulesActivity extends AppCompatActivity {
-
     private DatabaseHelper dbHelper;
-    private AuthManager authManager;
     private ListView lvDoctors;
-    private List<DoctorInfo> doctorList;
+    private List<DoctorSchedule> doctors;
+    private DoctorScheduleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,116 +34,124 @@ public class DoctorSchedulesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_doctor_schedules);
 
         dbHelper = new DatabaseHelper(this);
-        authManager = AuthManager.getInstance(this);
+        lvDoctors = findViewById(R.id.lvDoctorSchedules);
 
-        if (!authManager.isLoggedIn()) {
-            finish();
-            return;
-        }
+        doctors = new ArrayList<>();
+        adapter = new DoctorScheduleAdapter();
+        lvDoctors.setAdapter(adapter);
 
-        lvDoctors = findViewById(R.id.lvDoctors);
-        doctorList = new ArrayList<>();
-
-        loadDoctors();
+        loadDoctorSchedules();
     }
 
-    private void loadDoctors() {
-        doctorList.clear();
+    private void loadDoctorSchedules() {
+        doctors.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // Query to get doctors and their specialization
-        Cursor cursor = db.rawQuery(
-                "SELECT u.id, u.full_name, d.specialization " +
-                        "FROM users u " +
-                        "JOIN doctors d ON u.id = d.user_id " +
-                        "WHERE u.role = 'doctor' AND u.is_active = 1",
-                null);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String today = dateFormat.format(new Date());
+
+        String query = "SELECT u.id, u.full_name, d.specialization, " +
+                "(SELECT COUNT(*) FROM appointments WHERE doctor_id = u.id AND DATE(appointment_datetime) = ? AND status = 'scheduled') as today_count, " +
+                "(SELECT COUNT(*) FROM appointments WHERE doctor_id = u.id AND DATE(appointment_datetime) > ? AND status = 'scheduled') as upcoming_count " +
+                "FROM users u " +
+                "JOIN doctors d ON u.id = d.user_id " +
+                "WHERE u.role = 'doctor' AND u.is_active = 1 " +
+                "ORDER BY u.full_name ASC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{today, today});
 
         while (cursor.moveToNext()) {
-            doctorList.add(new DoctorInfo(
-                    cursor.getInt(0),
-                    cursor.getString(1),
-                    cursor.getString(2)
+            doctors.add(new DoctorSchedule(
+                cursor.getInt(0),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getInt(3),
+                cursor.getInt(4)
             ));
         }
         cursor.close();
-
-        // Custom Adapter to match the Card design
-        ArrayAdapter<DoctorInfo> adapter = new ArrayAdapter<DoctorInfo>(this, android.R.layout.simple_list_item_2, doctorList) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-
-                // Styling the list item to look like a card
-                view.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
-                view.setPadding(30, 30, 30, 30);
-                view.setBackgroundColor(getResources().getColor(android.R.color.white));
-                view.setElevation(4f);
-
-                TextView text1 = view.findViewById(android.R.id.text1);
-                TextView text2 = view.findViewById(android.R.id.text2);
-
-                DoctorInfo doc = getItem(position);
-                text1.setText(doc.name);
-                text1.setTypeface(null, android.graphics.Typeface.BOLD);
-                text1.setTextColor(getResources().getColor(android.R.color.black));
-                text2.setText(doc.specialization);
-
-                return view;
-            }
-        };
-
-        lvDoctors.setAdapter(adapter);
-        lvDoctors.setOnItemClickListener((parent, view, position, id) ->
-                showDoctorScheduleDialog(doctorList.get(position)));
+        adapter.notifyDataSetChanged();
     }
 
-    private void showDoctorScheduleDialog(DoctorInfo doctor) {
+    private void showDoctorAppointments(int doctorId, String doctorName) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String today = sdf.format(new Date());
+        
+        String query = "SELECT a.appointment_datetime, p.full_name, a.status " +
+                "FROM appointments a " +
+                "JOIN users p ON a.patient_id = p.id " +
+                "WHERE a.doctor_id = ? AND DATE(a.appointment_datetime) >= DATE('now') " +
+                "ORDER BY a.appointment_datetime ASC";
 
-        Cursor cursor = db.rawQuery(
-                "SELECT u.full_name, a.appointment_datetime, a.status " +
-                        "FROM appointments a " +
-                        "JOIN users u ON a.patient_id = u.id " +
-                        "WHERE a.doctor_id = ? AND DATE(a.appointment_datetime) = ? " +
-                        "ORDER BY a.appointment_datetime ASC",
-                new String[]{String.valueOf(doctor.id), today});
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(doctorId)});
 
         StringBuilder schedule = new StringBuilder();
-        if (cursor.getCount() == 0) {
-            schedule.append("Aucun rendez-vous prévu aujourd'hui.");
-        } else {
-            while (cursor.moveToNext()) {
-                String time = cursor.getString(1).substring(11, 16); // Extract HH:mm
-                schedule.append(time).append(" - ").append(cursor.getString(0))
-                        .append(" (").append(cursor.getString(2)).append(")\n\n");
-            }
+        while (cursor.moveToNext()) {
+            schedule.append(cursor.getString(0))
+                    .append(" - ")
+                    .append(cursor.getString(1))
+                    .append(" (")
+                    .append(cursor.getString(2))
+                    .append(")\n");
         }
         cursor.close();
 
-        new AlertDialog.Builder(this)
-                .setTitle("Planning: " + doctor.name)
-                .setMessage(schedule.toString())
-                .setPositiveButton("Fermer", null)
-                .show();
+        if (schedule.length() == 0) {
+            schedule.append("Aucun rendez-vous programmé");
+        }
+
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Horaires - Dr. " + doctorName)
+            .setMessage(schedule.toString())
+            .setPositiveButton("Fermer", null)
+            .show();
     }
 
-    private static class DoctorInfo {
-        int id;
-        String name;
-        String specialization;
+    private class DoctorScheduleAdapter extends BaseAdapter {
+        @Override
+        public int getCount() { return doctors.size(); }
 
-        DoctorInfo(int id, String name, String specialization) {
+        @Override
+        public Object getItem(int position) { return doctors.get(position); }
+
+        @Override
+        public long getItemId(int position) { return doctors.get(position).id; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(DoctorSchedulesActivity.this)
+                        .inflate(R.layout.item_doctor_schedule, parent, false);
+            }
+
+            DoctorSchedule doctor = doctors.get(position);
+
+            TextView tvName = convertView.findViewById(R.id.tvDoctorScheduleName);
+            TextView tvSpecialization = convertView.findViewById(R.id.tvDoctorScheduleSpecialization);
+            TextView tvToday = convertView.findViewById(R.id.tvDoctorScheduleToday);
+            TextView tvUpcoming = convertView.findViewById(R.id.tvDoctorScheduleUpcoming);
+            Button btnViewSchedule = convertView.findViewById(R.id.btnViewDoctorSchedule);
+
+            tvName.setText("Dr. " + doctor.name);
+            tvSpecialization.setText(doctor.specialization);
+            tvToday.setText("Aujourd'hui: " + doctor.todayCount);
+            tvUpcoming.setText("À venir: " + doctor.upcomingCount);
+
+            btnViewSchedule.setOnClickListener(v -> showDoctorAppointments(doctor.id, doctor.name));
+
+            return convertView;
+        }
+    }
+
+    private static class DoctorSchedule {
+        int id, todayCount, upcomingCount;
+        String name, specialization;
+
+        DoctorSchedule(int id, String name, String specialization, int todayCount, int upcomingCount) {
             this.id = id;
             this.name = name;
             this.specialization = specialization;
-        }
-
-        @Override
-        public String toString() {
-            return name + "\n" + specialization;
+            this.todayCount = todayCount;
+            this.upcomingCount = upcomingCount;
         }
     }
 }

@@ -194,7 +194,7 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
 
         cardViewPatients.setOnClickListener(v -> {
             if (authManager.hasPermission("secretary_view_patient_list")) {
-                Intent intent = new Intent(this, ViewPatientsActivity.class);
+                Intent intent = new Intent(this, SecretaryPatientManagementActivity.class);
                 startActivity(intent);
             } else {
                 Toast.makeText(this, "Permission manquante", Toast.LENGTH_SHORT).show();

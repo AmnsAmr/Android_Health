@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@android:color/white"
+    android:elevation="2dp">
+
+    <TextView
+        android:id="@+id/tvDoctorScheduleName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="Dr. Name" />
+
+    <TextView
+        android:id="@+id/tvDoctorScheduleSpecialization"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Specialization" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/tvDoctorScheduleToday"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Aujourd'hui: 5" />
+
+        <TextView
+            android:id="@+id/tvDoctorScheduleUpcoming"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="À venir: 12" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnViewDoctorSchedule"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Voir Horaires"
+        android:backgroundTint="@color/primary_color" />
+
+</LinearLayout>

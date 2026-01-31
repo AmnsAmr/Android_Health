@@ -8,35 +8,33 @@
     android:elevation="2dp">
 
     <TextView
-        android:id="@+id/tvAppointmentDateTime"
+        android:id="@+id/tvPatientViewName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
-        android:textSize="14sp"
-        android:text="2026-01-15 10:00:00" />
+        android:textSize="16sp"
+        android:text="Patient Name" />
 
     <TextView
-        android:id="@+id/tvAppointmentPatient"
+        android:id="@+id/tvPatientViewEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Patient: John Doe" />
+        android:text="email@example.com" />
 
     <TextView
-        android:id="@+id/tvAppointmentDoctor"
+        android:id="@+id/tvPatientViewPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="Dr. Smith - Cardiology" />
+        android:text="Phone: 0612345678" />
 
-    <TextView
-        android:id="@+id/tvAppointmentStatus"
+    <Button
+        android:id="@+id/btnViewPatientDetails"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:padding="4dp"
-        android:textColor="@android:color/white"
-        android:background="#4CAF50"
-        android:text="scheduled" />
+        android:layout_marginTop="8dp"
+        android:text="Voir Détails"
+        android:backgroundTint="@color/primary_color" />
 
 </LinearLayout>

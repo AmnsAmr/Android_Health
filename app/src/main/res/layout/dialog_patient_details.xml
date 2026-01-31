@@ -1,100 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Modifier Rendez-vous"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/tvEditAppointmentPatient"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Patient: "
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/tvEditAppointmentDoctor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Médecin: "
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Date"
+        android:text="Nom Complet"
         android:textStyle="bold"
         android:layout_marginBottom="4dp" />
 
-    <EditText
-        android:id="@+id/etEditAppointmentDate"
+    <TextView
+        android:id="@+id/tvPatientDetailName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="YYYY-MM-DD"
-        android:focusable="false"
-        android:clickable="true"
+        android:text="Patient Name"
         android:layout_marginBottom="12dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Heure"
+        android:text="Email"
         android:textStyle="bold"
         android:layout_marginBottom="4dp" />
 
-    <EditText
-        android:id="@+id/etEditAppointmentTime"
+    <TextView
+        android:id="@+id/tvPatientDetailEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="HH:MM"
-        android:focusable="false"
-        android:clickable="true"
+        android:text="email@example.com"
         android:layout_marginBottom="12dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Statut"
+        android:text="Téléphone"
         android:textStyle="bold"
         android:layout_marginBottom="4dp" />
 
-    <Spinner
-        android:id="@+id/spinnerEditAppointmentStatus"
+    <TextView
+        android:id="@+id/tvPatientDetailPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="0612345678"
         android:layout_marginBottom="12dp" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Notes"
+        android:text="Date de Naissance"
         android:textStyle="bold"
         android:layout_marginBottom="4dp" />
 
-    <EditText
-        android:id="@+id/etEditAppointmentNotes"
+    <TextView
+        android:id="@+id/tvPatientDetailBirthDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Notes"
-        android:minLines="3"
-        android:gravity="top"
-        android:layout_marginBottom="16dp" />
+        android:text="1990-01-01"
+        android:layout_marginBottom="12dp" />
 
-    <Button
-        android:id="@+id/btnSaveAppointment"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Enregistrer"
-        android:backgroundTint="@color/primary_color" />
+        android:text="Groupe Sanguin"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvPatientDetailBloodType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="A+"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Contact d'Urgence"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvPatientDetailEmergency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Emergency Contact" />
 
 </LinearLayout>

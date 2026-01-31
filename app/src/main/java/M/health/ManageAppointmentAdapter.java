@@ -18,14 +18,14 @@ import java.util.Locale;
 
 public class ManageAppointmentAdapter extends RecyclerView.Adapter<ManageAppointmentAdapter.ViewHolder> {
 
-    private List<ManageAppointmentsActivity.AppointmentDetail> appointments;
+    private List<ManageAppointmentsActivity.AppointmentItem> appointments;
     private OnAppointmentActionListener listener;
 
     public interface OnAppointmentActionListener {
-        void onAppointmentAction(ManageAppointmentsActivity.AppointmentDetail appointment, String action);
+        void onAppointmentAction(ManageAppointmentsActivity.AppointmentItem appointment, String action);
     }
 
-    public ManageAppointmentAdapter(List<ManageAppointmentsActivity.AppointmentDetail> appointments,
+    public ManageAppointmentAdapter(List<ManageAppointmentsActivity.AppointmentItem> appointments,
                                     OnAppointmentActionListener listener) {
         this.appointments = appointments;
         this.listener = listener;
@@ -41,7 +41,7 @@ public class ManageAppointmentAdapter extends RecyclerView.Adapter<ManageAppoint
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ManageAppointmentsActivity.AppointmentDetail appointment = appointments.get(position);
+        ManageAppointmentsActivity.AppointmentItem appointment = appointments.get(position);
 
         // Format date and time
         String formattedDateTime = formatDateTime(appointment.getDateTime());
@@ -64,31 +64,18 @@ public class ManageAppointmentAdapter extends RecyclerView.Adapter<ManageAppoint
         switch (appointment.getStatus().toLowerCase()) {
             case "scheduled":
                 holder.tvStatus.setBackgroundColor(Color.parseColor("#4CAF50"));
-                holder.btnEdit.setEnabled(true);
-                holder.btnCancel.setEnabled(true);
                 break;
             case "cancelled":
                 holder.tvStatus.setBackgroundColor(Color.parseColor("#9E9E9E"));
-                holder.btnEdit.setEnabled(false);
-                holder.btnCancel.setEnabled(false);
                 break;
             case "completed":
                 holder.tvStatus.setBackgroundColor(Color.parseColor("#2196F3"));
-                holder.btnEdit.setEnabled(false);
-                holder.btnCancel.setEnabled(false);
                 break;
         }
 
-        // Button listeners
-        holder.btnEdit.setOnClickListener(v -> {
+        holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onAppointmentAction(appointment, "edit");
-            }
-        });
-
-        holder.btnCancel.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onAppointmentAction(appointment, "cancel");
+                listener.onAppointmentAction(appointment, "view");
             }
         });
     }
@@ -120,13 +107,13 @@ public class ManageAppointmentAdapter extends RecyclerView.Adapter<ManageAppoint
 
         ViewHolder(View itemView) {
             super(itemView);
-            tvDateTime = itemView.findViewById(R.id.tvDateTime);
-            tvPatientName = itemView.findViewById(R.id.tvPatientName);
-            tvPatientPhone = itemView.findViewById(R.id.tvPatientPhone);
-            tvDoctorInfo = itemView.findViewById(R.id.tvDoctorInfo);
-            tvStatus = itemView.findViewById(R.id.tvStatus);
-            btnEdit = itemView.findViewById(R.id.btnEdit);
-            btnCancel = itemView.findViewById(R.id.btnCancel);
+            tvDateTime = itemView.findViewById(R.id.tvAppointmentDateTime);
+            tvPatientName = itemView.findViewById(R.id.tvAppointmentPatient);
+            tvPatientPhone = itemView.findViewById(R.id.tvAppointmentPatient);
+            tvDoctorInfo = itemView.findViewById(R.id.tvAppointmentDoctor);
+            tvStatus = itemView.findViewById(R.id.tvAppointmentStatus);
+            btnEdit = null;
+            btnCancel = null;
         }
     }
 }

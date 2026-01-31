@@ -1,31 +1,24 @@
 package M.health;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.widget.EditText;
-import android.widget.ImageView;
-
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class ViewPatientsActivity extends AppCompatActivity {
-
     private DatabaseHelper dbHelper;
-    private RecyclerView rvPatients;
-    private EditText etSearch;
-    private ImageView btnBack;
-
-    private PatientListAdapter patientAdapter;
+    private AuthManager authManager;
+    private ListView lvPatients;
     private List<PatientInfo> patients;
-    private List<PatientInfo> filteredPatients;
+    private PatientListAdapter adapter;
+    private EditText etSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,128 +26,134 @@ public class ViewPatientsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_patients);
 
         dbHelper = new DatabaseHelper(this);
+        authManager = AuthManager.getInstance(this);
 
-        initializeViews();
-        loadPatients();
-        setupListeners();
-    }
+        lvPatients = findViewById(R.id.lvPatientsList);
+        etSearch = findViewById(R.id.etSearchPatient);
+        Button btnSearch = findViewById(R.id.btnSearchPatient);
 
-    private void initializeViews() {
-        btnBack = findViewById(R.id.btnBack);
-        etSearch = findViewById(R.id.etSearch);
-        rvPatients = findViewById(R.id.rvPatients);
-
-        rvPatients.setLayoutManager(new LinearLayoutManager(this));
         patients = new ArrayList<>();
-        filteredPatients = new ArrayList<>();
-        patientAdapter = new PatientListAdapter(filteredPatients, this::onPatientClick);
-        rvPatients.setAdapter(patientAdapter);
-    }
+        adapter = new PatientListAdapter();
+        lvPatients.setAdapter(adapter);
 
-    private void loadPatients() {
-        patients.clear();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        loadPatients("");
 
-        // Secretary can only view administrative data, not medical records
-        String query = "SELECT u.id, u.full_name, u.email, u.phone, " +
-                "p.date_of_birth, p.gender, p.emergency_contact " +
-                "FROM users u " +
-                "LEFT JOIN patients p ON u.id = p.user_id " +
-                "WHERE u.role = 'patient' AND u.is_active = 1 " +
-                "ORDER BY u.full_name ASC";
-
-        Cursor cursor = db.rawQuery(query, null);
-        while (cursor.moveToNext()) {
-            PatientInfo patient = new PatientInfo();
-            patient.setId(cursor.getInt(0));
-            patient.setFullName(cursor.getString(1));
-            patient.setEmail(cursor.getString(2));
-            patient.setPhone(cursor.getString(3));
-            patient.setDateOfBirth(cursor.getString(4));
-            patient.setGender(cursor.getString(5));
-            patient.setEmergencyContact(cursor.getString(6));
-
-            patients.add(patient);
-        }
-        cursor.close();
-
-        filteredPatients.clear();
-        filteredPatients.addAll(patients);
-        patientAdapter.notifyDataSetChanged();
-    }
-
-    private void setupListeners() {
-        btnBack.setOnClickListener(v -> finish());
-
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterPatients(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+        btnSearch.setOnClickListener(v -> {
+            String query = etSearch.getText().toString().trim();
+            loadPatients(query);
         });
     }
 
-    private void filterPatients(String query) {
-        filteredPatients.clear();
+    private void loadPatients(String searchQuery) {
+        patients.clear();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        if (query.isEmpty()) {
-            filteredPatients.addAll(patients);
-        } else {
-            String lowerQuery = query.toLowerCase();
-            for (PatientInfo patient : patients) {
-                if (patient.getFullName().toLowerCase().contains(lowerQuery) ||
-                        (patient.getPhone() != null && patient.getPhone().contains(query)) ||
-                        (patient.getEmail() != null && patient.getEmail().toLowerCase().contains(lowerQuery))) {
-                    filteredPatients.add(patient);
-                }
+        String query = "SELECT u.id, u.full_name, u.email, u.phone, p.date_of_birth, p.blood_type, p.emergency_contact " +
+                "FROM users u LEFT JOIN patients p ON u.id = p.user_id " +
+                "WHERE u.role = 'patient' AND u.is_active = 1 ";
+
+        if (!searchQuery.isEmpty()) {
+            query += "AND (u.full_name LIKE ? OR u.email LIKE ?) ";
+        }
+        query += "ORDER BY u.full_name ASC";
+
+        Cursor cursor = searchQuery.isEmpty() ? 
+            db.rawQuery(query, null) : 
+            db.rawQuery(query, new String[]{"%" + searchQuery + "%", "%" + searchQuery + "%"});
+
+        while (cursor.moveToNext()) {
+            patients.add(new PatientInfo(
+                cursor.getInt(0),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getString(3),
+                cursor.getString(4),
+                cursor.getString(5),
+                cursor.getString(6)
+            ));
+        }
+        cursor.close();
+        adapter.notifyDataSetChanged();
+    }
+
+    private void showPatientDetails(PatientInfo patient) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_patient_details, null);
+
+        TextView tvName = dialogView.findViewById(R.id.tvPatientDetailName);
+        TextView tvEmail = dialogView.findViewById(R.id.tvPatientDetailEmail);
+        TextView tvPhone = dialogView.findViewById(R.id.tvPatientDetailPhone);
+        TextView tvBirthDate = dialogView.findViewById(R.id.tvPatientDetailBirthDate);
+        TextView tvBloodType = dialogView.findViewById(R.id.tvPatientDetailBloodType);
+        TextView tvEmergency = dialogView.findViewById(R.id.tvPatientDetailEmergency);
+
+        tvName.setText(patient.name);
+        tvEmail.setText(patient.email);
+        tvPhone.setText(patient.phone != null ? patient.phone : "N/A");
+        tvBirthDate.setText(patient.birthDate != null ? patient.birthDate : "N/A");
+        tvBloodType.setText(patient.bloodType != null ? patient.bloodType : "N/A");
+        tvEmergency.setText(patient.emergencyContact != null ? patient.emergencyContact : "N/A");
+
+        new AlertDialog.Builder(this)
+            .setTitle("Détails Patient")
+            .setView(dialogView)
+            .setPositiveButton("Fermer", null)
+            .show();
+    }
+
+    private class PatientListAdapter extends BaseAdapter {
+        @Override
+        public int getCount() { return patients.size(); }
+
+        @Override
+        public Object getItem(int position) { return patients.get(position); }
+
+        @Override
+        public long getItemId(int position) { return patients.get(position).id; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(ViewPatientsActivity.this)
+                        .inflate(R.layout.item_patient_view, parent, false);
             }
+
+            PatientInfo patient = patients.get(position);
+
+            TextView tvName = convertView.findViewById(R.id.tvPatientViewName);
+            TextView tvEmail = convertView.findViewById(R.id.tvPatientViewEmail);
+            TextView tvPhone = convertView.findViewById(R.id.tvPatientViewPhone);
+            Button btnDetails = convertView.findViewById(R.id.btnViewPatientDetails);
+
+            tvName.setText(patient.name);
+            tvEmail.setText(patient.email);
+            tvPhone.setText(patient.phone != null ? patient.phone : "N/A");
+
+            btnDetails.setOnClickListener(v -> showPatientDetails(patient));
+
+            return convertView;
+        }
+    }
+
+    public static class PatientInfo {
+        int id;
+        String name, email, phone, birthDate, bloodType, emergencyContact;
+
+        PatientInfo(int id, String name, String email, String phone, String birthDate, String bloodType, String emergencyContact) {
+            this.id = id;
+            this.name = name;
+            this.email = email;
+            this.phone = phone;
+            this.birthDate = birthDate;
+            this.bloodType = bloodType;
+            this.emergencyContact = emergencyContact;
         }
 
-        patientAdapter.notifyDataSetChanged();
-    }
-
-    private void onPatientClick(PatientInfo patient) {
-        // Open patient administrative details (non-medical)
-        Intent intent = new Intent(this, PatientAdminDetailsActivity.class);
-        intent.putExtra("patient_id", patient.getId());
-        startActivity(intent);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadPatients();
-    }
-
-    // Patient Info Model
-    public static class PatientInfo {
-        private int id;
-        private String fullName;
-        private String email;
-        private String phone;
-        private String dateOfBirth;
-        private String gender;
-        private String emergencyContact;
-
         public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-        public String getFullName() { return fullName; }
-        public void setFullName(String fullName) { this.fullName = fullName; }
+        public String getFullName() { return name; }
         public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
         public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public String getDateOfBirth() { return dateOfBirth; }
-        public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
-        public String getGender() { return gender; }
-        public void setGender(String gender) { this.gender = gender; }
+        public String getBirthDate() { return birthDate; }
+        public String getBloodType() { return bloodType; }
         public String getEmergencyContact() { return emergencyContact; }
-        public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
     }
 }

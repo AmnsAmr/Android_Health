@@ -1,38 +1,26 @@
 package M.health;
 
-import android.content.Intent;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.Spinner;
-
+import android.view.ViewGroup;
+import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ManageAppointmentsActivity extends AppCompatActivity {
-
     private DatabaseHelper dbHelper;
-    private RecyclerView rvAppointments;
-    private Spinner spinnerFilterDoctor;
-    private Spinner spinnerFilterStatus;
-    private Button btnCreateAppointment;
-    private ImageView btnBack;
-
-    private ManageAppointmentAdapter appointmentAdapter;
-    private List<AppointmentDetail> appointments;
-    private List<Doctor> doctors;
-
-    private int selectedDoctorId = -1; // -1 means all doctors
-    private String selectedStatus = "all";
+    private AuthManager authManager;
+    private ListView lvAppointments;
+    private List<AppointmentItem> appointments;
+    private AppointmentListAdapter adapter;
+    private Spinner spinnerFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,89 +28,33 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_manage_appointments);
 
         dbHelper = new DatabaseHelper(this);
+        authManager = AuthManager.getInstance(this);
 
-        initializeViews();
-        loadDoctors();
-        setupSpinners();
-        loadAppointments();
-        setupListeners();
-    }
+        lvAppointments = findViewById(R.id.lvAppointments);
+        spinnerFilter = findViewById(R.id.spinnerFilter);
+        Button btnCreateAppointment = findViewById(R.id.btnCreateAppointment);
 
-    private void initializeViews() {
-        btnBack = findViewById(R.id.btnBack);
-        spinnerFilterDoctor = findViewById(R.id.spinnerFilterDoctor);
-        spinnerFilterStatus = findViewById(R.id.spinnerFilterStatus);
-        btnCreateAppointment = findViewById(R.id.btnCreateAppointment);
-        rvAppointments = findViewById(R.id.rvAppointments);
-
-        rvAppointments.setLayoutManager(new LinearLayoutManager(this));
         appointments = new ArrayList<>();
-        appointmentAdapter = new ManageAppointmentAdapter(appointments, this::onAppointmentAction);
-        rvAppointments.setAdapter(appointmentAdapter);
+        adapter = new AppointmentListAdapter();
+        lvAppointments.setAdapter(adapter);
+
+        setupFilterSpinner();
+        loadAppointments("all");
+
+        btnCreateAppointment.setOnClickListener(v -> showCreateAppointmentDialog());
     }
 
-    private void loadDoctors() {
-        doctors = new ArrayList<>();
-        doctors.add(new Doctor(-1, "Tous les médecins", "")); // Default option
+    private void setupFilterSpinner() {
+        String[] filters = {"Tous", "Programmés", "Annulés", "Terminés"};
+        ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filters);
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFilter.setAdapter(filterAdapter);
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String query = "SELECT u.id, u.full_name, d.specialization " +
-                "FROM users u " +
-                "JOIN doctors d ON u.id = d.user_id " +
-                "WHERE u.role = 'doctor' AND u.is_active = 1";
-
-        Cursor cursor = db.rawQuery(query, null);
-        while (cursor.moveToNext()) {
-            doctors.add(new Doctor(
-                    cursor.getInt(0),
-                    cursor.getString(1),
-                    cursor.getString(2)
-            ));
-        }
-        cursor.close();
-    }
-
-    private void setupSpinners() {
-        // Doctor spinner
-        List<String> doctorNames = new ArrayList<>();
-        for (Doctor doctor : doctors) {
-            String displayName = doctor.getName();
-            if (doctor.getId() != -1 && doctor.getSpecialization() != null) {
-                displayName += " (" + doctor.getSpecialization() + ")";
-            }
-            doctorNames.add(displayName);
-        }
-
-        ArrayAdapter<String> doctorAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, doctorNames);
-        doctorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerFilterDoctor.setAdapter(doctorAdapter);
-
-        // Status spinner
-        String[] statuses = {"Tous", "Planifié", "Annulé", "Terminé"};
-        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, statuses);
-        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerFilterStatus.setAdapter(statusAdapter);
-
-        // Spinner listeners
-        spinnerFilterDoctor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedDoctorId = doctors.get(position).getId();
-                loadAppointments();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        spinnerFilterStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String[] statusValues = {"all", "scheduled", "cancelled", "completed"};
-                selectedStatus = statusValues[position];
-                loadAppointments();
+                String[] statuses = {"all", "scheduled", "cancelled", "completed"};
+                loadAppointments(statuses[position]);
             }
 
             @Override
@@ -130,135 +62,281 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         });
     }
 
-    private void loadAppointments() {
+    private void loadAppointments(String status) {
         appointments.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // Build dynamic query based on filters
-        StringBuilder queryBuilder = new StringBuilder(
-                "SELECT a.id, a.appointment_datetime, a.status, a.notes, " +
-                        "p.full_name as patient_name, p.phone as patient_phone, " +
-                        "d.full_name as doctor_name, doc.specialization " +
-                        "FROM appointments a " +
-                        "JOIN users p ON a.patient_id = p.id " +
-                        "JOIN users d ON a.doctor_id = d.id " +
-                        "LEFT JOIN doctors doc ON d.id = doc.user_id " +
-                        "WHERE 1=1 "
-        );
+        String query = "SELECT a.id, a.appointment_datetime, a.status, " +
+                "p.full_name as patient_name, d.full_name as doctor_name, doc.specialization " +
+                "FROM appointments a " +
+                "JOIN users p ON a.patient_id = p.id " +
+                "JOIN users d ON a.doctor_id = d.id " +
+                "LEFT JOIN doctors doc ON d.id = doc.user_id ";
 
-        List<String> selectionArgs = new ArrayList<>();
-
-        if (selectedDoctorId != -1) {
-            queryBuilder.append("AND a.doctor_id = ? ");
-            selectionArgs.add(String.valueOf(selectedDoctorId));
+        if (!status.equals("all")) {
+            query += "WHERE a.status = ? ";
         }
+        query += "ORDER BY a.appointment_datetime DESC";
 
-        if (!selectedStatus.equals("all")) {
-            queryBuilder.append("AND a.status = ? ");
-            selectionArgs.add(selectedStatus);
-        }
-
-        queryBuilder.append("ORDER BY a.appointment_datetime DESC");
-
-        Cursor cursor = db.rawQuery(queryBuilder.toString(),
-                selectionArgs.toArray(new String[0]));
+        Cursor cursor = status.equals("all") ? 
+            db.rawQuery(query, null) : 
+            db.rawQuery(query, new String[]{status});
 
         while (cursor.moveToNext()) {
-            AppointmentDetail appointment = new AppointmentDetail();
-            appointment.setId(cursor.getInt(0));
-            appointment.setDateTime(cursor.getString(1));
-            appointment.setStatus(cursor.getString(2));
-            appointment.setNotes(cursor.getString(3));
-            appointment.setPatientName(cursor.getString(4));
-            appointment.setPatientPhone(cursor.getString(5));
-            appointment.setDoctorName(cursor.getString(6));
-            appointment.setSpecialization(cursor.getString(7));
+            appointments.add(new AppointmentItem(
+                cursor.getInt(0),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getString(3),
+                cursor.getString(4),
+                cursor.getString(5)
+            ));
+        }
+        cursor.close();
+        adapter.notifyDataSetChanged();
+    }
 
-            appointments.add(appointment);
+    private void showCreateAppointmentDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_appointment, null);
+        
+        Spinner spinnerPatient = dialogView.findViewById(R.id.spinnerPatient);
+        Spinner spinnerDoctor = dialogView.findViewById(R.id.spinnerDoctor);
+        EditText etDate = dialogView.findViewById(R.id.etAppointmentDate);
+        EditText etTime = dialogView.findViewById(R.id.etAppointmentTime);
+        EditText etNotes = dialogView.findViewById(R.id.etAppointmentNotes);
+
+        loadPatients(spinnerPatient);
+        loadDoctors(spinnerDoctor);
+
+        etDate.setOnClickListener(v -> showDatePicker(etDate));
+        etTime.setOnClickListener(v -> showTimePicker(etTime));
+
+        new AlertDialog.Builder(this)
+            .setTitle("Créer Rendez-vous")
+            .setView(dialogView)
+            .setPositiveButton("Créer", (dialog, which) -> {
+                if (spinnerPatient.getSelectedItem() != null && spinnerDoctor.getSelectedItem() != null) {
+                    int patientId = ((SpinnerItem) spinnerPatient.getSelectedItem()).id;
+                    int doctorId = ((SpinnerItem) spinnerDoctor.getSelectedItem()).id;
+                    String dateTime = etDate.getText().toString() + " " + etTime.getText().toString() + ":00";
+                    String notes = etNotes.getText().toString();
+                    createAppointment(patientId, doctorId, dateTime, notes);
+                }
+            })
+            .setNegativeButton("Annuler", null)
+            .show();
+    }
+
+    private void loadPatients(Spinner spinner) {
+        List<SpinnerItem> patients = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT id, full_name FROM users WHERE role = 'patient' AND is_active = 1", null);
+        
+        while (cursor.moveToNext()) {
+            patients.add(new SpinnerItem(cursor.getInt(0), cursor.getString(1)));
         }
         cursor.close();
 
-        appointmentAdapter.notifyDataSetChanged();
+        ArrayAdapter<SpinnerItem> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, patients);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
     }
 
-    private void setupListeners() {
-        btnBack.setOnClickListener(v -> finish());
+    private void loadDoctors(Spinner spinner) {
+        List<SpinnerItem> doctors = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT id, full_name FROM users WHERE role = 'doctor' AND is_active = 1", null);
+        
+        while (cursor.moveToNext()) {
+            doctors.add(new SpinnerItem(cursor.getInt(0), cursor.getString(1)));
+        }
+        cursor.close();
 
-        btnCreateAppointment.setOnClickListener(v -> {
-            Intent intent = new Intent(this, CreateAppointmentActivity.class);
-            startActivity(intent);
-        });
+        ArrayAdapter<SpinnerItem> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, doctors);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
     }
 
-    private void onAppointmentAction(AppointmentDetail appointment, String action) {
-        Intent intent;
-        switch (action) {
-            case "edit":
-                intent = new Intent(this, EditAppointmentActivity.class);
-                intent.putExtra("appointment_id", appointment.getId());
-                startActivity(intent);
-                break;
-            case "cancel":
-                cancelAppointment(appointment.getId());
-                break;
+    private void showDatePicker(EditText editText) {
+        Calendar cal = Calendar.getInstance();
+        new DatePickerDialog(this, (view, year, month, day) -> {
+            editText.setText(String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day));
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void showTimePicker(EditText editText) {
+        Calendar cal = Calendar.getInstance();
+        new TimePickerDialog(this, (view, hour, minute) -> {
+            editText.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute));
+        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
+    }
+
+    private void createAppointment(int patientId, int doctorId, String dateTime, String notes) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("patient_id", patientId);
+        values.put("doctor_id", doctorId);
+        values.put("appointment_datetime", dateTime);
+        values.put("status", "scheduled");
+        values.put("notes", notes);
+        values.put("created_by", "secretary");
+
+        long result = db.insert("appointments", null, values);
+        if (result != -1) {
+            Toast.makeText(this, "Rendez-vous créé", Toast.LENGTH_SHORT).show();
+            loadAppointments("all");
         }
     }
 
-    private void cancelAppointment(int appointmentId) {
+    private void showAppointmentOptions(AppointmentItem appointment) {
+        String[] options = {"Modifier", "Confirmer", "Annuler", "Supprimer"};
+        new AlertDialog.Builder(this)
+            .setTitle("Options")
+            .setItems(options, (dialog, which) -> {
+                switch (which) {
+                    case 0: showEditDialog(appointment); break;
+                    case 1: updateAppointmentStatus(appointment.id, "scheduled"); break;
+                    case 2: updateAppointmentStatus(appointment.id, "cancelled"); break;
+                    case 3: deleteAppointment(appointment.id); break;
+                }
+            })
+            .show();
+    }
+
+    private void showEditDialog(AppointmentItem appointment) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_appointment, null);
+        
+        EditText etDate = dialogView.findViewById(R.id.etAppointmentDate);
+        EditText etTime = dialogView.findViewById(R.id.etAppointmentTime);
+        EditText etNotes = dialogView.findViewById(R.id.etAppointmentNotes);
+
+        String[] parts = appointment.dateTime.split(" ");
+        if (parts.length >= 2) {
+            etDate.setText(parts[0]);
+            etTime.setText(parts[1].substring(0, 5));
+        }
+
+        etDate.setOnClickListener(v -> showDatePicker(etDate));
+        etTime.setOnClickListener(v -> showTimePicker(etTime));
+
+        new AlertDialog.Builder(this)
+            .setTitle("Modifier Rendez-vous")
+            .setView(dialogView)
+            .setPositiveButton("Modifier", (dialog, which) -> {
+                String dateTime = etDate.getText().toString() + " " + etTime.getText().toString() + ":00";
+                String notes = etNotes.getText().toString();
+                updateAppointment(appointment.id, dateTime, notes);
+            })
+            .setNegativeButton("Annuler", null)
+            .show();
+    }
+
+    private void updateAppointment(int id, String dateTime, String notes) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL("UPDATE appointments SET status = 'cancelled' WHERE id = ?",
-                new String[]{String.valueOf(appointmentId)});
-        loadAppointments();
+        ContentValues values = new ContentValues();
+        values.put("appointment_datetime", dateTime);
+        values.put("notes", notes);
+
+        int result = db.update("appointments", values, "id = ?", new String[]{String.valueOf(id)});
+        if (result > 0) {
+            Toast.makeText(this, "Rendez-vous modifié", Toast.LENGTH_SHORT).show();
+            loadAppointments("all");
+        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadAppointments();
+    private void updateAppointmentStatus(int id, String status) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("status", status);
+
+        int result = db.update("appointments", values, "id = ?", new String[]{String.valueOf(id)});
+        if (result > 0) {
+            Toast.makeText(this, "Statut mis à jour", Toast.LENGTH_SHORT).show();
+            loadAppointments("all");
+        }
     }
 
-    // Inner classes
-    static class Doctor {
-        private int id;
-        private String name;
-        private String specialization;
+    private void deleteAppointment(int id) {
+        new AlertDialog.Builder(this)
+            .setTitle("Confirmer")
+            .setMessage("Supprimer ce rendez-vous?")
+            .setPositiveButton("Oui", (dialog, which) -> {
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                db.delete("appointments", "id = ?", new String[]{String.valueOf(id)});
+                Toast.makeText(this, "Rendez-vous supprimé", Toast.LENGTH_SHORT).show();
+                loadAppointments("all");
+            })
+            .setNegativeButton("Non", null)
+            .show();
+    }
 
-        Doctor(int id, String name, String specialization) {
+    private class AppointmentListAdapter extends BaseAdapter {
+        @Override
+        public int getCount() { return appointments.size(); }
+
+        @Override
+        public Object getItem(int position) { return appointments.get(position); }
+
+        @Override
+        public long getItemId(int position) { return appointments.get(position).id; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(ManageAppointmentsActivity.this)
+                        .inflate(R.layout.item_appointment_manage, parent, false);
+            }
+
+            AppointmentItem item = appointments.get(position);
+            
+            TextView tvDateTime = convertView.findViewById(R.id.tvAppointmentDateTime);
+            TextView tvPatient = convertView.findViewById(R.id.tvAppointmentPatient);
+            TextView tvDoctor = convertView.findViewById(R.id.tvAppointmentDoctor);
+            TextView tvStatus = convertView.findViewById(R.id.tvAppointmentStatus);
+
+            tvDateTime.setText(item.dateTime);
+            tvPatient.setText("Patient: " + item.patientName);
+            tvDoctor.setText("Dr. " + item.doctorName + " - " + (item.specialization != null ? item.specialization : ""));
+            tvStatus.setText(item.status);
+
+            convertView.setOnClickListener(v -> showAppointmentOptions(item));
+
+            return convertView;
+        }
+    }
+
+    static class AppointmentItem {
+        int id;
+        String dateTime, status, patientName, doctorName, specialization;
+
+        AppointmentItem(int id, String dateTime, String status, String patientName, String doctorName, String specialization) {
             this.id = id;
-            this.name = name;
+            this.dateTime = dateTime;
+            this.status = status;
+            this.patientName = patientName;
+            this.doctorName = doctorName;
             this.specialization = specialization;
         }
 
         public int getId() { return id; }
-        public String getName() { return name; }
+        public String getDateTime() { return dateTime; }
+        public String getStatus() { return status; }
+        public String getPatientName() { return patientName; }
+        public String getPatientPhone() { return null; }
+        public String getDoctorName() { return doctorName; }
         public String getSpecialization() { return specialization; }
     }
 
-    static class AppointmentDetail {
-        private int id;
-        private String dateTime;
-        private String status;
-        private String notes;
-        private String patientName;
-        private String patientPhone;
-        private String doctorName;
-        private String specialization;
+    private static class SpinnerItem {
+        int id;
+        String name;
 
-        public int getId() { return id; }
-        public void setId(int id) { this.id = id; }
-        public String getDateTime() { return dateTime; }
-        public void setDateTime(String dateTime) { this.dateTime = dateTime; }
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
-        public String getNotes() { return notes; }
-        public void setNotes(String notes) { this.notes = notes; }
-        public String getPatientName() { return patientName; }
-        public void setPatientName(String patientName) { this.patientName = patientName; }
-        public String getPatientPhone() { return patientPhone; }
-        public void setPatientPhone(String patientPhone) { this.patientPhone = patientPhone; }
-        public String getDoctorName() { return doctorName; }
-        public void setDoctorName(String doctorName) { this.doctorName = doctorName; }
-        public String getSpecialization() { return specialization; }
-        public void setSpecialization(String specialization) { this.specialization = specialization; }
+        SpinnerItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() { return name; }
     }
 }

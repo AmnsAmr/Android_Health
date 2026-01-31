@@ -3,40 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F2F5F9">
+    android:padding="16dp">
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:padding="16dp"
-        android:elevation="4dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Plannings Médecins"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Consultez la disponibilité et les RDV du jour"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp" />
-    </LinearLayout>
+        android:text="Horaires des Médecins"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
 
     <ListView
-        android:id="@+id/lvDoctors"
+        android:id="@+id/lvDoctorSchedules"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@null"
-        android:dividerHeight="8dp"
-        android:padding="16dp"
-        android:clipToPadding="false" />
+        android:divider="@android:color/transparent"
+        android:dividerHeight="8dp" />
 
 </LinearLayout>

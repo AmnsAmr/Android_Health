@@ -4,24 +4,34 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UrgentRequestsActivity extends AppCompatActivity {
-
     private DatabaseHelper dbHelper;
     private AuthManager authManager;
     private ListView lvUrgentMessages;
-    private List<UrgentMessage> messageList;
-    private ArrayAdapter<UrgentMessage> adapter;
+    private List<UrgentMessage> messages;
+    private UrgentMessageAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,100 +41,166 @@ public class UrgentRequestsActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         authManager = AuthManager.getInstance(this);
 
-        if (!authManager.isLoggedIn()) {
-            finish();
-            return;
-        }
-
         lvUrgentMessages = findViewById(R.id.lvUrgentMessages);
-        messageList = new ArrayList<>();
+        Button btnSendUrgent = findViewById(R.id.btnSendUrgentMessage);
+
+        messages = new ArrayList<>();
+        adapter = new UrgentMessageAdapter();
+        lvUrgentMessages.setAdapter(adapter);
 
         loadUrgentMessages();
+
+        btnSendUrgent.setOnClickListener(v -> showSendUrgentMessageDialog());
     }
 
     private void loadUrgentMessages() {
-        messageList.clear();
+        messages.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        int currentUserId = authManager.getUserId();
 
-        // Query for urgent messages sent to the current user (secretary)
-        Cursor cursor = db.rawQuery(
-                "SELECT m.id, u.full_name, m.message, m.sent_at " +
-                        "FROM messages m " +
-                        "JOIN users u ON m.sender_id = u.id " +
-                        "WHERE m.receiver_id = ? AND m.is_urgent = 1 " +
-                        "ORDER BY m.sent_at DESC",
-                new String[]{String.valueOf(currentUserId)});
+        String query = "SELECT m.id, m.message, m.sent_at, " +
+                "sender.full_name as sender_name, receiver.full_name as receiver_name " +
+                "FROM messages m " +
+                "JOIN users sender ON m.sender_id = sender.id " +
+                "JOIN users receiver ON m.receiver_id = receiver.id " +
+                "WHERE m.is_urgent = 1 " +
+                "ORDER BY m.sent_at DESC";
+
+        Cursor cursor = db.rawQuery(query, null);
 
         while (cursor.moveToNext()) {
-            messageList.add(new UrgentMessage(
-                    cursor.getInt(0),
-                    cursor.getString(1),
-                    cursor.getString(2),
-                    cursor.getString(3)
+            messages.add(new UrgentMessage(
+                cursor.getInt(0),
+                cursor.getString(1),
+                cursor.getString(2),
+                cursor.getString(3),
+                cursor.getString(4)
             ));
         }
         cursor.close();
-
-        adapter = new ArrayAdapter<UrgentMessage>(this, android.R.layout.simple_list_item_2, messageList) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-
-                // Card styling
-                view.setBackgroundColor(getResources().getColor(android.R.color.white));
-                view.setPadding(30, 30, 30, 30);
-                view.setElevation(2f);
-
-                TextView text1 = view.findViewById(android.R.id.text1);
-                TextView text2 = view.findViewById(android.R.id.text2);
-
-                UrgentMessage msg = getItem(position);
-                text1.setText(msg.senderName + " (" + msg.date + ")");
-                text1.setTypeface(null, android.graphics.Typeface.BOLD);
-                text1.setTextColor(getResources().getColor(R.color.black));
-                text2.setText(msg.content);
-                text2.setMaxLines(2);
-
-                return view;
-            }
-        };
-
-        lvUrgentMessages.setAdapter(adapter);
-        lvUrgentMessages.setOnItemClickListener((parent, view, position, id) ->
-                showMessageOptions(messageList.get(position)));
+        adapter.notifyDataSetChanged();
     }
 
-    private void showMessageOptions(UrgentMessage msg) {
+    private void showSendUrgentMessageDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_send_urgent_message, null);
+
+        Spinner spinnerDoctor = dialogView.findViewById(R.id.spinnerUrgentDoctor);
+        EditText etMessage = dialogView.findViewById(R.id.etUrgentMessage);
+
+        loadDoctors(spinnerDoctor);
+
         new AlertDialog.Builder(this)
-                .setTitle("Message de " + msg.senderName)
-                .setMessage(msg.content)
-                .setPositiveButton("Marquer comme traité", (dialog, which) -> markAsHandled(msg.id))
-                .setNegativeButton("Fermer", null)
-                .show();
+            .setTitle("Envoyer Message Urgent")
+            .setView(dialogView)
+            .setPositiveButton("Envoyer", (dialog, which) -> {
+                if (spinnerDoctor.getSelectedItem() != null) {
+                    int doctorId = ((DoctorItem) spinnerDoctor.getSelectedItem()).id;
+                    String message = etMessage.getText().toString().trim();
+                    if (!message.isEmpty()) {
+                        sendUrgentMessage(doctorId, message);
+                    } else {
+                        Toast.makeText(this, "Message vide", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            })
+            .setNegativeButton("Annuler", null)
+            .show();
     }
 
-    private void markAsHandled(int messageId) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("is_urgent", 0); // Remove urgent flag
+    private void loadDoctors(Spinner spinner) {
+        List<DoctorItem> doctors = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        Cursor cursor = db.rawQuery(
+            "SELECT u.id, u.full_name, d.specialization " +
+            "FROM users u JOIN doctors d ON u.id = d.user_id " +
+            "WHERE u.role = 'doctor' AND u.is_active = 1", null);
 
-        int rows = db.update("messages", values, "id = ?", new String[]{String.valueOf(messageId)});
-        if (rows > 0) {
-            Toast.makeText(this, "Message traité", Toast.LENGTH_SHORT).show();
-            loadUrgentMessages(); // Refresh list
+        while (cursor.moveToNext()) {
+            doctors.add(new DoctorItem(cursor.getInt(0), cursor.getString(1), cursor.getString(2)));
+        }
+        cursor.close();
+
+        ArrayAdapter<DoctorItem> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, doctors);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+    private void sendUrgentMessage(int doctorId, String message) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        
+        ContentValues values = new ContentValues();
+        values.put("sender_id", authManager.getUserId());
+        values.put("receiver_id", doctorId);
+        values.put("message", message);
+        values.put("is_urgent", 1);
+
+        long result = db.insert("messages", null, values);
+        
+        if (result != -1) {
+            Toast.makeText(this, "Message urgent envoyé", Toast.LENGTH_SHORT).show();
+            loadUrgentMessages();
+        } else {
+            Toast.makeText(this, "Erreur d'envoi", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class UrgentMessageAdapter extends BaseAdapter {
+        @Override
+        public int getCount() { return messages.size(); }
+
+        @Override
+        public Object getItem(int position) { return messages.get(position); }
+
+        @Override
+        public long getItemId(int position) { return messages.get(position).id; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(UrgentRequestsActivity.this)
+                        .inflate(R.layout.item_urgent_message, parent, false);
+            }
+
+            UrgentMessage msg = messages.get(position);
+
+            TextView tvSender = convertView.findViewById(R.id.tvUrgentSender);
+            TextView tvReceiver = convertView.findViewById(R.id.tvUrgentReceiver);
+            TextView tvMessage = convertView.findViewById(R.id.tvUrgentMessageText);
+            TextView tvTime = convertView.findViewById(R.id.tvUrgentTime);
+
+            tvSender.setText("De: " + msg.senderName);
+            tvReceiver.setText("À: " + msg.receiverName);
+            tvMessage.setText(msg.message);
+            tvTime.setText(msg.sentAt);
+
+            return convertView;
         }
     }
 
     private static class UrgentMessage {
         int id;
-        String senderName, content, date;
+        String message, sentAt, senderName, receiverName;
 
-        UrgentMessage(int id, String senderName, String content, String date) {
+        UrgentMessage(int id, String message, String sentAt, String senderName, String receiverName) {
             this.id = id;
+            this.message = message;
+            this.sentAt = sentAt;
             this.senderName = senderName;
-            this.content = content;
-            this.date = date;
+            this.receiverName = receiverName;
         }
+    }
+
+    private static class DoctorItem {
+        int id;
+        String name, specialization;
+
+        DoctorItem(int id, String name, String specialization) {
+            this.id = id;
+            this.name = name;
+            this.specialization = specialization;
+        }
+
+        @Override
+        public String toString() { return name + " - " + specialization; }
     }
 }
