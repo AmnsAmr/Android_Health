@@ -63,23 +63,7 @@ public class UIHelper {
     public static void setupHeader(Activity activity, View headerView, String title, 
                                  View.OnClickListener backClickListener, 
                                  View.OnClickListener actionClickListener) {
-        if (headerView == null) return;
-
-        TextView tvHeaderTitle = headerView.findViewById(R.id.tvHeaderTitle);
-        ImageView btnBack = headerView.findViewById(R.id.btnBack);
-        ImageView btnHeaderAction = headerView.findViewById(R.id.btnHeaderAction);
-
-        if (tvHeaderTitle != null) {
-            tvHeaderTitle.setText(title);
-        }
-
-        if (btnBack != null && backClickListener != null) {
-            btnBack.setOnClickListener(backClickListener);
-        }
-
-        if (btnHeaderAction != null && actionClickListener != null) {
-            btnHeaderAction.setOnClickListener(actionClickListener);
-        }
+        // This method is deprecated - use setupUserProfileHeader instead
     }
 
     public static void setupHeader(Activity activity, View headerView, String title) {
@@ -87,37 +71,7 @@ public class UIHelper {
     }
 
     public static void setupHeaderWithSignOut(Activity activity, View headerView, String title, AuthManager authManager) {
-        if (headerView == null) return;
-
-        TextView tvHeaderTitle = headerView.findViewById(R.id.tvHeaderTitle);
-        ImageView btnBack = headerView.findViewById(R.id.btnBack);
-        ImageView btnHeaderAction = headerView.findViewById(R.id.btnHeaderAction);
-        ImageView btnSignOut = headerView.findViewById(R.id.btnSignOut);
-
-        if (tvHeaderTitle != null) {
-            tvHeaderTitle.setText(title);
-        }
-
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> activity.finish());
-        }
-
-        if (btnHeaderAction != null) {
-            btnHeaderAction.setOnClickListener(v -> {
-                Intent intent = new Intent(activity, SettingsActivity.class);
-                activity.startActivity(intent);
-            });
-        }
-
-        if (btnSignOut != null && authManager != null) {
-            btnSignOut.setOnClickListener(v -> {
-                authManager.logout();
-                Intent intent = new Intent(activity, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                activity.startActivity(intent);
-                activity.finish();
-            });
-        }
+        // This method is deprecated - use setupUserProfileHeader instead
     }
 
     private static String getRoleDisplay(String role) {

@@ -38,6 +38,16 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         doctorId = authManager.getUserId();
 
+        // Setup header
+        ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
+        ((TextView) findViewById(R.id.tvUserRole)).setText("Médecin");
+        ((TextView) findViewById(R.id.tvUserInfo)).setText("ID: " + doctorId);
+        findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.btnSignOut).setOnClickListener(v -> {
+            authManager.logout();
+            redirectToLogin();
+        });
+
         doctorNameText = findViewById(R.id.tvDoctorName);
         doctorSpecialtyText = findViewById(R.id.tvDoctorSpecialty);
         statsText = findViewById(R.id.statsText);

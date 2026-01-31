@@ -34,7 +34,6 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
     private LinearLayout cardViewPatients;
     private LinearLayout cardDoctorSchedules;
     private LinearLayout cardUrgentRequests;
-    private Button btnLogout;
 
     private AppointmentAdapter appointmentAdapter;
     private List<Appointment> todayAppointments;
@@ -94,7 +93,13 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
         cardViewPatients = findViewById(R.id.cardViewPatients);
         cardDoctorSchedules = findViewById(R.id.cardDoctorSchedules);
         cardUrgentRequests = findViewById(R.id.cardUrgentRequests);
-        btnLogout = findViewById(R.id.btnLogout);
+
+        // Setup header
+        ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
+        ((TextView) findViewById(R.id.tvUserRole)).setText("Secrétaire Médicale");
+        ((TextView) findViewById(R.id.tvUserInfo)).setText("ID: " + authManager.getUserId());
+        findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
+        findViewById(R.id.btnSignOut).setOnClickListener(v -> logout());
 
         // Setup RecyclerView
         rvTodayAppointments.setLayoutManager(new LinearLayoutManager(this));
@@ -210,8 +215,6 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(this, UrgentRequestsActivity.class);
             startActivity(intent);
         });
-
-        btnLogout.setOnClickListener(v -> logout());
     }
 
     private void onAppointmentClick(Appointment appointment) {

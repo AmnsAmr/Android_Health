@@ -21,9 +21,8 @@ public class SettingsActivity extends AppCompatActivity {
     
     private ImageView ivProfilePicture;
     private EditText etFullName, etEmail, etCurrentPassword, etNewPassword, etConfirmPassword;
-    private TextView tvRole, tvUserId, tvLastLogin, tvHeaderTitle;
+    private TextView tvRole, tvUserId, tvLastLogin;
     private Button btnSaveProfile, btnChangePassword, btnLogout, btnChangeProfilePicture;
-    private ImageView btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +44,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
-        tvHeaderTitle = findViewById(R.id.tvHeaderTitle);
-        btnBack = findViewById(R.id.btnBack);
         ivProfilePicture = findViewById(R.id.ivProfilePicture);
         etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmail);
@@ -60,8 +57,6 @@ public class SettingsActivity extends AppCompatActivity {
         btnChangePassword = findViewById(R.id.btnChangePassword);
         btnLogout = findViewById(R.id.btnLogout);
         btnChangeProfilePicture = findViewById(R.id.btnChangeProfilePicture);
-
-        tvHeaderTitle.setText("Paramètres");
     }
 
     private void loadUserData() {
@@ -101,8 +96,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        btnBack.setOnClickListener(v -> finish());
-
         btnSaveProfile.setOnClickListener(v -> saveProfile());
         
         btnChangePassword.setOnClickListener(v -> changePassword());
