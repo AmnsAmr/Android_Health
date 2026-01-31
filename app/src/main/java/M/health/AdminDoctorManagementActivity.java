@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
+import android.content.res.ColorStateList;
 
 public class AdminDoctorManagementActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
@@ -287,7 +288,7 @@ public class AdminDoctorManagementActivity extends AppCompatActivity {
             tvStatus.setTextColor(doctor.isActive ? 0xFF4CAF50 : 0xFFE74C3C);
             
             btnToggleStatus.setText(doctor.isActive ? "Désactiver" : "Activer");
-            btnToggleStatus.setBackgroundTint(doctor.isActive ? 0xFFE74C3C : 0xFF4CAF50);
+            btnToggleStatus.setBackgroundTintList(ColorStateList.valueOf(doctor.isActive ? 0xFFE74C3C : 0xFF4CAF50));
 
             btnEdit.setOnClickListener(v -> showEditDoctorDialog(doctor));
             btnToggleStatus.setOnClickListener(v -> toggleDoctorStatus(doctor));

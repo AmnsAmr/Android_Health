@@ -18,16 +18,13 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doctor_dashboard);
 
         dbHelper = new DatabaseHelper(this);
         authManager = AuthManager.getInstance(this);
-        doctorId = getIntent().getIntExtra("user_id", -1);
 
+        // Validate session and permissions
         if (!authManager.isLoggedIn() || !authManager.validateSession()) {
-            Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+            redirectToLogin();
             return;
         }
 
@@ -36,6 +33,10 @@ public class DoctorDashboardActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        setContentView(R.layout.activity_doctor_dashboard);
+
+        doctorId = authManager.getUserId();
 
         doctorNameText = findViewById(R.id.tvDoctorName);
         doctorSpecialtyText = findViewById(R.id.tvDoctorSpecialty);
@@ -48,8 +49,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardPatients.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_view_patients")) {
-                startActivity(new Intent(this, DoctorPatientsActivity.class)
-                    .putExtra("doctor_id", doctorId));
+                startActivity(new Intent(this, DoctorPatientsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }
@@ -57,8 +57,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardAppointments.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_manage_appointments")) {
-                startActivity(new Intent(this, DoctorAppointmentsActivity.class)
-                    .putExtra("doctor_id", doctorId));
+                startActivity(new Intent(this, DoctorAppointmentsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }
@@ -66,7 +65,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardMedicalRecords.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_access_medical_records")) {
-                startActivity(new Intent(this, TestResultsActivity.class));
+                startActivity(new Intent(this, DoctorMedicalRecordsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }
@@ -74,7 +73,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         cardPrescriptions.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_prescribe_medication")) {
-                startActivity(new Intent(this, DoctorRefillRequestsActivity.class));
+                startActivity(new Intent(this, DoctorPrescriptionsActivity.class));
             } else {
                 Toast.makeText(this, "Accès refusé", Toast.LENGTH_SHORT).show();
             }
@@ -87,10 +86,10 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     private void loadDoctorInfo() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery(
-            "SELECT u.full_name, d.specialization FROM users u " +
-            "JOIN doctors d ON u.id = d.user_id WHERE u.id = ?", 
-            new String[]{String.valueOf(doctorId)});
-        
+                "SELECT u.full_name, d.specialization FROM users u " +
+                        "JOIN doctors d ON u.id = d.user_id WHERE u.id = ?",
+                new String[]{String.valueOf(doctorId)});
+
         if (cursor.moveToFirst()) {
             doctorNameText.setText(cursor.getString(0));
             doctorSpecialtyText.setText(cursor.getString(1));
@@ -104,8 +103,8 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         // Today's appointments
         Cursor cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND date(appointment_datetime) = date('now')", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND date(appointment_datetime) = date('now')",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             stats.append("Rendez-vous aujourd'hui: ").append(cursor.getInt(0)).append("\n");
         }
@@ -113,8 +112,8 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         // Total patients
         cursor = db.rawQuery(
-            "SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = ?", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = ?",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             stats.append("Patients total: ").append(cursor.getInt(0)).append("\n");
         }
@@ -122,15 +121,33 @@ public class DoctorDashboardActivity extends AppCompatActivity {
 
         // Pending refill requests
         cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM prescription_refill_requests pr " +
-            "JOIN prescriptions p ON pr.prescription_id = p.id " +
-            "WHERE p.doctor_id = ? AND pr.status = 'pending'", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(*) FROM prescription_refill_requests pr " +
+                        "JOIN prescriptions p ON pr.prescription_id = p.id " +
+                        "WHERE p.doctor_id = ? AND pr.status = 'pending'",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             stats.append("Demandes renouvellement: ").append(cursor.getInt(0));
         }
         cursor.close();
 
         statsText.setText(stats.toString());
+    }
+
+    private void redirectToLogin() {
+        Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+        loadStats(); // Refresh stats when returning to dashboard
     }
 }

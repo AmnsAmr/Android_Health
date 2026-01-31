@@ -1,6 +1,7 @@
 package M.health;
 
 import android.content.ContentValues;
+import android.content.Intent; // Added import
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class DoctorPatientsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
+    private AuthManager authManager; // Added AuthManager
     private ListView patientsListView;
     private ArrayAdapter<String> adapter;
     private int doctorId;
@@ -21,10 +23,28 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doctor_patients);
 
         dbHelper = new DatabaseHelper(this);
-        doctorId = getIntent().getIntExtra("doctor_id", -1);
+        authManager = AuthManager.getInstance(this); // Initialize AuthManager
+
+        // 1. Validate Session
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+
+        // 2. Validate Permission
+        if (!authManager.hasPermission("doctor_view_patients")) {
+            Toast.makeText(this, "Accès refusé: Permissions insuffisantes", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_doctor_patients);
+
+        // 3. Get Doctor ID from Session (Secure) instead of Intent
+        doctorId = authManager.getUserId();
+
         patientsListView = findViewById(R.id.patientsListView);
         totalPatientsText = findViewById(R.id.totalPatientsText);
         recordsCountText = findViewById(R.id.recordsCountText);
@@ -32,13 +52,35 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
         LinearLayout addTestResultBtn = findViewById(R.id.addTestResultBtn);
         LinearLayout searchPatientBtn = findViewById(R.id.searchPatientBtn);
-        
+
         addTestResultBtn.setOnClickListener(v -> showAddTestResultDialog());
         searchPatientBtn.setOnClickListener(v -> showSearchDialog());
 
-        patientsListView.setOnItemClickListener((parent, view, position, id) -> 
-            showPatientOptionsDialog(patients.get(position)));
+        patientsListView.setOnItemClickListener((parent, view, position, id) ->
+                showPatientOptionsDialog(patients.get(position)));
 
+        loadPatients();
+        loadStatistics();
+    }
+
+    // Added Session Management Helper
+    private void redirectToLogin() {
+        Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    // Added onResume to re-validate session if app is resumed
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
+            redirectToLogin();
+            return;
+        }
+        // Optional: reload data to keep it fresh
         loadPatients();
         loadStatistics();
     }
@@ -46,29 +88,29 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void loadPatients() {
         patients.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
-            "FROM users u " +
-            "JOIN patients p ON u.id = p.user_id " +
-            "JOIN appointments a ON u.id = a.patient_id " +
-            "WHERE a.doctor_id = ? AND u.role = 'patient' ORDER BY u.full_name", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
+                        "FROM users u " +
+                        "JOIN patients p ON u.id = p.user_id " +
+                        "JOIN appointments a ON u.id = a.patient_id " +
+                        "WHERE a.doctor_id = ? AND u.role = 'patient' ORDER BY u.full_name",
+                new String[]{String.valueOf(doctorId)});
 
         List<String> patientStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
             Patient patient = new Patient(
-                cursor.getInt(0), 
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3)
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3)
             );
             patients.add(patient);
-            
+
             String bloodType = patient.bloodType != null ? patient.bloodType : "N/A";
-            String patientDisplay = String.format("%-20s | %-8s | Actions", 
-                patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
-                bloodType);
+            String patientDisplay = String.format("%-20s | %-8s | Actions",
+                    patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
+                    bloodType);
             patientStrings.add(patientDisplay);
         }
         cursor.close();
@@ -89,20 +131,20 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
     private void loadStatistics() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         // Total patients for this doctor
         Cursor cursor = db.rawQuery(
-            "SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = ?", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = ?",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             totalPatientsText.setText(String.valueOf(cursor.getInt(0)));
         }
         cursor.close();
-        
+
         // Total medical records by this doctor
         cursor = db.rawQuery(
-            "SELECT COUNT(*) FROM medical_records WHERE doctor_id = ?", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT COUNT(*) FROM medical_records WHERE doctor_id = ?",
+                new String[]{String.valueOf(doctorId)});
         if (cursor.moveToFirst()) {
             recordsCountText.setText(String.valueOf(cursor.getInt(0)));
         }
@@ -130,30 +172,30 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void searchPatients(String query) {
         patients.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
-            "FROM users u " +
-            "JOIN patients p ON u.id = p.user_id " +
-            "JOIN appointments a ON u.id = a.patient_id " +
-            "WHERE a.doctor_id = ? AND u.role = 'patient' AND u.full_name LIKE ? " +
-            "ORDER BY u.full_name", 
-            new String[]{String.valueOf(doctorId), "%" + query + "%"});
+                "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
+                        "FROM users u " +
+                        "JOIN patients p ON u.id = p.user_id " +
+                        "JOIN appointments a ON u.id = a.patient_id " +
+                        "WHERE a.doctor_id = ? AND u.role = 'patient' AND u.full_name LIKE ? " +
+                        "ORDER BY u.full_name",
+                new String[]{String.valueOf(doctorId), "%" + query + "%"});
 
         List<String> patientStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
             Patient patient = new Patient(
-                cursor.getInt(0), 
-                cursor.getString(1),
-                cursor.getString(2),
-                cursor.getString(3)
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getString(3)
             );
             patients.add(patient);
-            
+
             String bloodType = patient.bloodType != null ? patient.bloodType : "N/A";
-            String patientDisplay = String.format("%-20s | %-8s | Actions", 
-                patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
-                bloodType);
+            String patientDisplay = String.format("%-20s | %-8s | Actions",
+                    patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
+                    bloodType);
             patientStrings.add(patientDisplay);
         }
         cursor.close();
@@ -170,7 +212,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
             }
         };
         patientsListView.setAdapter(adapter);
-        
+
         if (patients.isEmpty()) {
             Toast.makeText(this, "Aucun patient trouvé", Toast.LENGTH_SHORT).show();
         }
@@ -196,8 +238,8 @@ public class DoctorPatientsActivity extends AppCompatActivity {
             patientNames.add(patient.fullName);
             patientIds.add(patient.id);
         }
-        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, patientNames);
+        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, patientNames);
         patientAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         patientSpinner.setAdapter(patientAdapter);
         layout.addView(patientSpinner);
@@ -255,7 +297,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void showPatientOptionsDialog(Patient patient) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(patient.fullName);
-        
+
         String[] options = {"Voir dossier complet", "Ajouter dossier médical", "Voir résultats tests", "Modifier résultat test"};
         builder.setItems(options, (dialog, which) -> {
             switch (which) {
@@ -279,7 +321,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void showPatientDetails(Patient patient) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         StringBuilder details = new StringBuilder();
-        
+
         details.append("Patient: ").append(patient.fullName).append("\n");
         details.append("Date de naissance: ").append(patient.dateOfBirth != null ? patient.dateOfBirth : "N/A").append("\n");
         details.append("Groupe sanguin: ").append(patient.bloodType != null ? patient.bloodType : "N/A").append("\n\n");
@@ -287,10 +329,10 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         // Medical records
         details.append("DOSSIERS MÉDICAUX:\n");
         Cursor cursor = db.rawQuery(
-            "SELECT diagnosis, treatment, created_at FROM medical_records " +
-            "WHERE patient_id = ? AND doctor_id = ? ORDER BY created_at DESC LIMIT 5", 
-            new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
-        
+                "SELECT diagnosis, treatment, created_at FROM medical_records " +
+                        "WHERE patient_id = ? AND doctor_id = ? ORDER BY created_at DESC LIMIT 5",
+                new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
+
         if (cursor.getCount() == 0) {
             details.append("Aucun dossier médical\n\n");
         } else {
@@ -305,10 +347,10 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         // Test results
         details.append("RÉSULTATS DE TESTS RÉCENTS:\n");
         cursor = db.rawQuery(
-            "SELECT test_name, result, test_date FROM test_results " +
-            "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC LIMIT 3", 
-            new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
-        
+                "SELECT test_name, result, test_date FROM test_results " +
+                        "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC LIMIT 3",
+                new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
+
         if (cursor.getCount() == 0) {
             details.append("Aucun résultat de test");
         } else {
@@ -321,10 +363,10 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         cursor.close();
 
         new AlertDialog.Builder(this)
-            .setTitle("Dossier Patient Complet")
-            .setMessage(details.toString())
-            .setPositiveButton("Fermer", null)
-            .show();
+                .setTitle("Dossier Patient Complet")
+                .setMessage(details.toString())
+                .setPositiveButton("Fermer", null)
+                .show();
     }
 
     private void showAddMedicalRecordDialog(Patient patient) {
@@ -379,14 +421,14 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void showTestResults(Patient patient) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         StringBuilder results = new StringBuilder();
-        
+
         results.append("RÉSULTATS DE TESTS - ").append(patient.fullName).append("\n\n");
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT id, test_name, result, test_date FROM test_results " +
-            "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC", 
-            new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
-        
+                "SELECT id, test_name, result, test_date FROM test_results " +
+                        "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC",
+                new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
+
         if (cursor.getCount() == 0) {
             results.append("Aucun résultat de test disponible");
         } else {
@@ -400,21 +442,21 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         cursor.close();
 
         new AlertDialog.Builder(this)
-            .setTitle("Résultats de Tests")
-            .setMessage(results.toString())
-            .setPositiveButton("Fermer", null)
-            .show();
+                .setTitle("Résultats de Tests")
+                .setMessage(results.toString())
+                .setPositiveButton("Fermer", null)
+                .show();
     }
 
     private void showEditTestResultDialog(Patient patient) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         // Get test results for this patient
         Cursor cursor = db.rawQuery(
-            "SELECT id, test_name, result FROM test_results " +
-            "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC", 
-            new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
-        
+                "SELECT id, test_name, result FROM test_results " +
+                        "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC",
+                new String[]{String.valueOf(patient.id), String.valueOf(doctorId)});
+
         if (cursor.getCount() == 0) {
             cursor.close();
             Toast.makeText(this, "Aucun résultat de test à modifier", Toast.LENGTH_SHORT).show();
@@ -423,7 +465,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
         List<String> testOptions = new ArrayList<>();
         List<Integer> testIds = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             testIds.add(cursor.getInt(0));
             testOptions.add(cursor.getString(1) + " - " + cursor.getString(2));
@@ -441,16 +483,16 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
     private void showEditTestDialog(int testId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         Cursor cursor = db.rawQuery(
-            "SELECT test_name, result, test_date FROM test_results WHERE id = ?", 
-            new String[]{String.valueOf(testId)});
-        
+                "SELECT test_name, result, test_date FROM test_results WHERE id = ?",
+                new String[]{String.valueOf(testId)});
+
         if (!cursor.moveToFirst()) {
             cursor.close();
             return;
         }
-        
+
         String currentTestName = cursor.getString(0);
         String currentResult = cursor.getString(1);
         String currentDate = cursor.getString(2);
@@ -515,20 +557,20 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
     private void deleteTestResult(int testId) {
         new AlertDialog.Builder(this)
-            .setTitle("Confirmer la suppression")
-            .setMessage("Supprimer ce résultat de test ?")
-            .setPositiveButton("Supprimer", (dialog, which) -> {
-                SQLiteDatabase db = dbHelper.getWritableDatabase();
-                int result = db.delete("test_results", "id = ?", new String[]{String.valueOf(testId)});
-                if (result > 0) {
-                    Toast.makeText(this, "Résultat supprimé avec succès", Toast.LENGTH_SHORT).show();
-                    loadStatistics();
-                } else {
-                    Toast.makeText(this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
-                }
-            })
-            .setNegativeButton("Annuler", null)
-            .show();
+                .setTitle("Confirmer la suppression")
+                .setMessage("Supprimer ce résultat de test ?")
+                .setPositiveButton("Supprimer", (dialog, which) -> {
+                    SQLiteDatabase db = dbHelper.getWritableDatabase();
+                    int result = db.delete("test_results", "id = ?", new String[]{String.valueOf(testId)});
+                    if (result > 0) {
+                        Toast.makeText(this, "Résultat supprimé avec succès", Toast.LENGTH_SHORT).show();
+                        loadStatistics();
+                    } else {
+                        Toast.makeText(this, "Erreur lors de la suppression", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Annuler", null)
+                .show();
     }
 
     private static class Patient {

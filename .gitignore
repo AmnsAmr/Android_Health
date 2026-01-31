@@ -1,5 +1,6 @@
 .gradle/
 build/
+.gradle
 # Local configuration
 .idea/
 .DS_Store
