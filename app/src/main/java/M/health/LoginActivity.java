@@ -28,11 +28,8 @@ public class LoginActivity extends AppCompatActivity {
         emailEdit = findViewById(R.id.emailEdit);
         passwordEdit = findViewById(R.id.passwordEdit);
         Button loginBtn = findViewById(R.id.loginBtn);
-        Button registerBtn = findViewById(R.id.registerBtn);
 
         loginBtn.setOnClickListener(v -> login());
-        registerBtn.setOnClickListener(v ->
-                startActivity(new Intent(this, RegisterActivity.class)));
     }
 
     private void login() {
