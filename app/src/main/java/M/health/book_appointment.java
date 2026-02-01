@@ -192,13 +192,13 @@ public class book_appointment extends AppCompatActivity {
         values.put("doctor_id", doctorId);
         values.put("appointment_datetime", appointmentDatetime);
         values.put("notes", reason);
-        values.put("status", "scheduled");
+        values.put("status", "pending");
         values.put("created_by", "patient");
 
         long result = db.insert("appointments", null, values);
 
         if (result != -1) {
-            Toast.makeText(this, "Rendez-vous confirmé avec succès!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Demande de rendez-vous envoyée. En attente de confirmation.", Toast.LENGTH_LONG).show();
             finish();
         } else {
             Toast.makeText(this, "Erreur lors de la réservation", Toast.LENGTH_SHORT).show();

@@ -39,13 +39,13 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         lvAppointments.setAdapter(adapter);
 
         setupFilterSpinner();
-        loadAppointments("all");
+        loadAppointments("pending");
 
         btnCreateAppointment.setOnClickListener(v -> showCreateAppointmentDialog());
     }
 
     private void setupFilterSpinner() {
-        String[] filters = {"Tous", "Programmés", "Annulés", "Terminés"};
+        String[] filters = {"En attente", "Tous", "Programmés", "Annulés", "Terminés"};
         ArrayAdapter<String> filterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, filters);
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerFilter.setAdapter(filterAdapter);
@@ -53,7 +53,7 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String[] statuses = {"all", "scheduled", "cancelled", "completed"};
+                String[] statuses = {"pending", "all", "scheduled", "cancelled", "completed"};
                 loadAppointments(statuses[position]);
             }
 
@@ -184,20 +184,38 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         long result = db.insert("appointments", null, values);
         if (result != -1) {
             Toast.makeText(this, "Rendez-vous créé", Toast.LENGTH_SHORT).show();
-            loadAppointments("all");
+            loadAppointments("pending");
         }
     }
 
     private void showAppointmentOptions(AppointmentItem appointment) {
-        String[] options = {"Modifier", "Confirmer", "Annuler", "Supprimer"};
+        List<String> optionsList = new ArrayList<>();
+        optionsList.add("Modifier");
+        
+        if (appointment.status.equals("pending")) {
+            optionsList.add("Confirmer");
+            optionsList.add("Rejeter");
+        } else if (appointment.status.equals("scheduled")) {
+            optionsList.add("Annuler");
+        }
+        optionsList.add("Supprimer");
+
+        String[] options = optionsList.toArray(new String[0]);
+        
         new AlertDialog.Builder(this)
             .setTitle("Options")
             .setItems(options, (dialog, which) -> {
-                switch (which) {
-                    case 0: showEditDialog(appointment); break;
-                    case 1: updateAppointmentStatus(appointment.id, "scheduled"); break;
-                    case 2: updateAppointmentStatus(appointment.id, "cancelled"); break;
-                    case 3: deleteAppointment(appointment.id); break;
+                if (which == 0) {
+                    showEditDialog(appointment);
+                } else if (appointment.status.equals("pending")) {
+                    if (which == 1) updateAppointmentStatus(appointment.id, "scheduled");
+                    else if (which == 2) updateAppointmentStatus(appointment.id, "cancelled");
+                    else if (which == 3) deleteAppointment(appointment.id);
+                } else if (appointment.status.equals("scheduled")) {
+                    if (which == 1) updateAppointmentStatus(appointment.id, "cancelled");
+                    else if (which == 2) deleteAppointment(appointment.id);
+                } else {
+                    if (which == 1) deleteAppointment(appointment.id);
                 }
             })
             .show();
@@ -240,7 +258,7 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
         int result = db.update("appointments", values, "id = ?", new String[]{String.valueOf(id)});
         if (result > 0) {
             Toast.makeText(this, "Rendez-vous modifié", Toast.LENGTH_SHORT).show();
-            loadAppointments("all");
+            loadAppointments("pending");
         }
     }
 
@@ -251,8 +269,9 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
 
         int result = db.update("appointments", values, "id = ?", new String[]{String.valueOf(id)});
         if (result > 0) {
-            Toast.makeText(this, "Statut mis à jour", Toast.LENGTH_SHORT).show();
-            loadAppointments("all");
+            String message = status.equals("scheduled") ? "Rendez-vous confirmé" : "Statut mis à jour";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            loadAppointments("pending");
         }
     }
 
@@ -264,7 +283,7 @@ public class ManageAppointmentsActivity extends AppCompatActivity {
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 db.delete("appointments", "id = ?", new String[]{String.valueOf(id)});
                 Toast.makeText(this, "Rendez-vous supprimé", Toast.LENGTH_SHORT).show();
-                loadAppointments("all");
+                loadAppointments("pending");
             })
             .setNegativeButton("Non", null)
             .show();

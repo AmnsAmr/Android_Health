@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "health_app.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -58,7 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "patient_id INTEGER NOT NULL," +
                 "doctor_id INTEGER NOT NULL," +
                 "appointment_datetime DATETIME NOT NULL," +
-                "status TEXT CHECK (status IN ('scheduled','cancelled','completed')) DEFAULT 'scheduled'," +
+                "status TEXT CHECK (status IN ('pending','scheduled','cancelled','completed')) DEFAULT 'pending'," +
                 "notes TEXT," +
                 "created_by TEXT CHECK (created_by IN ('patient','secretary','doctor'))," +
                 "FOREIGN KEY (patient_id) REFERENCES users(id)," +
@@ -252,6 +252,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "('secretary', 'Send Urgent Messages', 'secretary_send_urgent_messages', 'administrative', 1)," +
                 "('secretary', 'Update Patient Profiles', 'secretary_update_patient_profiles', 'administrative', 1)," +
                 "('secretary', 'Access Patient List', 'secretary_access_patient_list', 'administrative', 1)");
+        }
+        if (oldVersion < 5) {
+            // Add 'pending' status to appointments
+            db.execSQL("DROP TABLE IF EXISTS appointments_backup");
+            db.execSQL("ALTER TABLE appointments RENAME TO appointments_backup");
+            
+            db.execSQL("CREATE TABLE appointments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "patient_id INTEGER NOT NULL," +
+                "doctor_id INTEGER NOT NULL," +
+                "appointment_datetime DATETIME NOT NULL," +
+                "status TEXT CHECK (status IN ('pending','scheduled','cancelled','completed')) DEFAULT 'pending'," +
+                "notes TEXT," +
+                "created_by TEXT CHECK (created_by IN ('patient','secretary','doctor'))," +
+                "FOREIGN KEY (patient_id) REFERENCES users(id)," +
+                "FOREIGN KEY (doctor_id) REFERENCES users(id))");
+            
+            db.execSQL("INSERT INTO appointments (id, patient_id, doctor_id, appointment_datetime, status, notes, created_by) " +
+                "SELECT id, patient_id, doctor_id, appointment_datetime, status, notes, created_by FROM appointments_backup");
+            
+            db.execSQL("DROP TABLE appointments_backup");
         }
     }
 }
