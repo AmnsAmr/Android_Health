@@ -196,6 +196,9 @@ public class AuthManager {
      * Get user ID from current session (backward compatibility with SharedPreferences approach)
      */
     public int getUserId() {
+        if (currentUser == null) {
+            restoreSession(); // TRY TO RECOVER SESSION IF NULL
+        }
         return currentUser != null ? currentUser.id : -1;
     }
 
