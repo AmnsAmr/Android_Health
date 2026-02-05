@@ -68,15 +68,15 @@ public class DoctorMedicalRecordsActivity extends AppCompatActivity {
     private void showAddRecordDialog() {
         // Get patients list
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // MODIFIED QUERY: Select all users who have the role 'patient'
         Cursor cursor = db.rawQuery(
-            "SELECT DISTINCT u.id, u.full_name FROM users u " +
-            "JOIN appointments a ON u.id = a.patient_id " +
-            "WHERE a.doctor_id = ? AND u.role = 'patient'", 
-            new String[]{String.valueOf(doctorId)});
+                "SELECT id, full_name FROM users WHERE role = 'patient'",
+                null); // No selection args needed anymore
 
         List<String> patientNames = new ArrayList<>();
         List<Integer> patientIds = new ArrayList<>();
-        
+
         while (cursor.moveToNext()) {
             patientIds.add(cursor.getInt(0));
             patientNames.add(cursor.getString(1));
@@ -84,7 +84,7 @@ public class DoctorMedicalRecordsActivity extends AppCompatActivity {
         cursor.close();
 
         if (patientNames.isEmpty()) {
-            Toast.makeText(this, "Aucun patient trouvé", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Aucun patient trouvé dans la base de données", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -96,8 +96,8 @@ public class DoctorMedicalRecordsActivity extends AppCompatActivity {
         layout.setPadding(50, 50, 50, 50);
 
         Spinner patientSpinner = new Spinner(this);
-        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this, 
-            android.R.layout.simple_spinner_item, patientNames);
+        ArrayAdapter<String> patientAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, patientNames);
         patientSpinner.setAdapter(patientAdapter);
         layout.addView(patientSpinner);
 

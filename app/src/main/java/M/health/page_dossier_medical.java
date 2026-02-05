@@ -20,9 +20,13 @@ public class page_dossier_medical extends AppCompatActivity {
 
     // UI Components
     private ImageView btnBack, btnDownloadAll;
-    private TextView tvPatientName, tvPatientAge, tvBloodType, tvAllergies;
-    private CardView cardResultatsLab, cardHistorique, cardMedicaments, cardImagerie;
+    private TextView tvPatientName;
+    private CardView cardResultatsLab;
     private CardView cardResultat1, cardResultat2, cardResultat3;
+
+    // Prescription Components
+    private CardView cardLatestPrescription;
+    private TextView tvPrescriptionMed, tvPrescriptionDosage, tvPrescriptionInstructions, tvPrescriptionDate, tvNoPrescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +52,10 @@ public class page_dossier_medical extends AppCompatActivity {
         AuthManager.User currentUser = authManager.getCurrentUser();
         patientId = currentUser.id;
 
-        // Custom header with back button
-        // Header elements are defined in the layout file
-
         initializeViews();
         loadPatientData();
+        loadLatestPrescription();
+        loadRecentTestResults();
         setupClickListeners();
     }
 
@@ -63,17 +66,19 @@ public class page_dossier_medical extends AppCompatActivity {
 
         // Informations personnelles
         tvPatientName = findViewById(R.id.tvPatientName);
-        tvPatientAge = findViewById(R.id.tvPatientAge);
-        tvBloodType = findViewById(R.id.tvBloodType);
-        tvAllergies = findViewById(R.id.tvAllergies);
 
-        // Cartes catégories
+        // Carte Historique
         cardResultatsLab = findViewById(R.id.cardResultatsLab);
-        cardHistorique = findViewById(R.id.cardHistorique);
-        cardMedicaments = findViewById(R.id.cardMedicaments);
-        cardImagerie = findViewById(R.id.cardImagerie);
 
-        // Cartes résultats
+        // Latest Prescription
+        cardLatestPrescription = findViewById(R.id.cardLatestPrescription);
+        tvPrescriptionMed = findViewById(R.id.tvPrescriptionMed);
+        tvPrescriptionDosage = findViewById(R.id.tvPrescriptionDosage);
+        tvPrescriptionInstructions = findViewById(R.id.tvPrescriptionInstructions);
+        tvPrescriptionDate = findViewById(R.id.tvPrescriptionDate);
+        tvNoPrescription = findViewById(R.id.tvNoPrescription);
+
+        // Cartes résultats de laboratoire
         cardResultat1 = findViewById(R.id.cardResultat1);
         cardResultat2 = findViewById(R.id.cardResultat2);
         cardResultat3 = findViewById(R.id.cardResultat3);
@@ -84,44 +89,15 @@ public class page_dossier_medical extends AppCompatActivity {
         Cursor cursor = null;
 
         try {
-            // Load patient information from users and patients tables
+            // Only fetch the name now
             cursor = db.rawQuery(
-                "SELECT u.full_name, u.email, p.date_of_birth, p.blood_type, p.emergency_contact " +
-                "FROM users u LEFT JOIN patients p ON u.id = p.user_id " +
-                "WHERE u.id = ?",
-                new String[]{String.valueOf(patientId)}
+                    "SELECT u.full_name FROM users u WHERE u.id = ?",
+                    new String[]{String.valueOf(patientId)}
             );
 
             if (cursor.moveToFirst()) {
                 String name = cursor.getString(0);
-                String birthDate = cursor.getString(2);
-                String bloodType = cursor.getString(3);
-                String emergencyContact = cursor.getString(4);
-                
                 tvPatientName.setText(name);
-                tvBloodType.setText(bloodType != null ? bloodType : "Non renseigné");
-                
-                // Calculate age from birth date
-                if (birthDate != null && !birthDate.isEmpty()) {
-                    try {
-                        String[] dateParts = birthDate.split("-");
-                        if (dateParts.length == 3) {
-                            int birthYear = Integer.parseInt(dateParts[0]);
-                            int currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
-                            int age = currentYear - birthYear;
-                            tvPatientAge.setText(age + " ans");
-                        } else {
-                            tvPatientAge.setText("Non renseigné");
-                        }
-                    } catch (Exception e) {
-                        tvPatientAge.setText("Non renseigné");
-                    }
-                } else {
-                    tvPatientAge.setText("Non renseigné");
-                }
-                
-                // Load allergies from medical records
-                loadAllergies();
             }
 
         } catch (Exception e) {
@@ -131,97 +107,109 @@ public class page_dossier_medical extends AppCompatActivity {
             if (cursor != null) cursor.close();
         }
     }
-    
-    private void loadAllergies() {
+
+    private void loadLatestPrescription() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = null;
-        
+
         try {
+            // Fetch the most recent prescription for this patient
             cursor = db.rawQuery(
-                "SELECT diagnosis FROM medical_records " +
-                "WHERE patient_id = ? AND (diagnosis LIKE '%allergie%' OR diagnosis LIKE '%allergique%') " +
-                "ORDER BY created_at DESC LIMIT 3",
-                new String[]{String.valueOf(patientId)}
+                    "SELECT medication, dosage, instructions, created_at " +
+                            "FROM prescriptions " +
+                            "WHERE patient_id = ? " +
+                            "ORDER BY created_at DESC LIMIT 1",
+                    new String[]{String.valueOf(patientId)}
             );
-            
-            StringBuilder allergies = new StringBuilder();
-            while (cursor.moveToNext()) {
-                if (allergies.length() > 0) allergies.append(", ");
-                allergies.append(cursor.getString(0));
+
+            if (cursor.moveToFirst()) {
+                String med = cursor.getString(0);
+                String dosage = cursor.getString(1);
+                String instructions = cursor.getString(2);
+                String date = cursor.getString(3);
+
+                tvPrescriptionMed.setText(med);
+                tvPrescriptionDosage.setText("Dosage: " + dosage);
+                tvPrescriptionInstructions.setText("Instructions: " + instructions);
+                tvPrescriptionDate.setText(date);
+
+                cardLatestPrescription.setVisibility(View.VISIBLE);
+                tvNoPrescription.setVisibility(View.GONE);
+            } else {
+                cardLatestPrescription.setVisibility(View.GONE);
+                tvNoPrescription.setVisibility(View.VISIBLE);
             }
-            
-            tvAllergies.setText(allergies.length() > 0 ? allergies.toString() : "Aucune allergie connue");
-            
+
         } catch (Exception e) {
-            tvAllergies.setText("Non renseigné");
+            e.printStackTrace();
         } finally {
             if (cursor != null) cursor.close();
         }
     }
-    
+
     private void loadRecentTestResults() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         try {
             Cursor cursor = db.rawQuery(
-                "SELECT tr.id, tr.test_name, tr.result, tr.test_date " +
-                "FROM test_results tr " +
-                "WHERE tr.patient_id = ? " +
-                "ORDER BY tr.test_date DESC LIMIT 3",
-                new String[]{String.valueOf(patientId)}
+                    "SELECT tr.id, tr.test_name, tr.result, tr.test_date " +
+                            "FROM test_results tr " +
+                            "WHERE tr.patient_id = ? " +
+                            "ORDER BY tr.test_date DESC LIMIT 3",
+                    new String[]{String.valueOf(patientId)}
             );
-            
+
             TextView[] testNames = {
-                findViewById(R.id.tvTestName1),
-                findViewById(R.id.tvTestName2),
-                findViewById(R.id.tvTestName3)
+                    findViewById(R.id.tvTestName1),
+                    findViewById(R.id.tvTestName2),
+                    findViewById(R.id.tvTestName3)
             };
             TextView[] testDates = {
-                findViewById(R.id.tvTestDate1),
-                findViewById(R.id.tvTestDate2),
-                findViewById(R.id.tvTestDate3)
+                    findViewById(R.id.tvTestDate1),
+                    findViewById(R.id.tvTestDate2),
+                    findViewById(R.id.tvTestDate3)
             };
             CardView[] cards = {cardResultat1, cardResultat2, cardResultat3};
             int cardIndex = 0;
-            
+
             while (cursor.moveToNext() && cardIndex < 3) {
                 final int testId = cursor.getInt(0);
                 final String testName = cursor.getString(1);
                 final String result = cursor.getString(2);
                 final String testDate = cursor.getString(3);
-                
+
                 testNames[cardIndex].setText(testName);
                 testDates[cardIndex].setText(testDate);
                 cards[cardIndex].setVisibility(View.VISIBLE);
                 cards[cardIndex].setOnClickListener(v -> showTestResultDetails(testId, testName, result, testDate));
-                
+
                 cardIndex++;
             }
             cursor.close();
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private void showTestResultDetails(int testId, String testName, String result, String testDate) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         StringBuilder details = new StringBuilder();
-        
+
         details.append("TEST: ").append(testName).append("\n\n");
         details.append("RÉSULTAT:\n").append(result).append("\n\n");
         details.append("DATE: ").append(testDate != null ? testDate : "Non spécifiée").append("\n\n");
-        
+
         // Load comments
         Cursor cursor = db.rawQuery(
-            "SELECT trc.comment, u.full_name " +
-            "FROM test_result_comments trc " +
-            "JOIN users u ON trc.doctor_id = u.id " +
-            "WHERE trc.test_result_id = ? " +
-            "ORDER BY trc.created_at DESC",
-            new String[]{String.valueOf(testId)}
+                "SELECT trc.comment, u.full_name " +
+                        "FROM test_result_comments trc " +
+                        "JOIN users u ON trc.doctor_id = u.id " +
+                        "WHERE trc.test_result_id = ? " +
+                        "ORDER BY trc.created_at DESC",
+                new String[]{String.valueOf(testId)}
         );
-        
+
         if (cursor.moveToFirst()) {
             details.append("COMMENTAIRES MÉDICAUX:\n");
             do {
@@ -230,70 +218,27 @@ public class page_dossier_medical extends AppCompatActivity {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        
+
         new android.app.AlertDialog.Builder(this)
-            .setTitle("Détails du Test")
-            .setMessage(details.toString())
-            .setPositiveButton("Fermer", null)
-            .show();
+                .setTitle("Détails du Test")
+                .setMessage(details.toString())
+                .setPositiveButton("Fermer", null)
+                .show();
     }
 
     private void setupClickListeners() {
         // Bouton retour
-        btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish(); // Retour à la page précédente
-            }
-        });
+        btnBack.setOnClickListener(v -> finish());
 
         // Bouton télécharger tout
-        btnDownloadAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Téléchargement de tous les documents...", Toast.LENGTH_SHORT).show();
-                // TODO: Implémenter le téléchargement de tous les documents
-            }
-        });
+        btnDownloadAll.setOnClickListener(v ->
+                Toast.makeText(page_dossier_medical.this, "Téléchargement en cours...", Toast.LENGTH_SHORT).show()
+        );
 
-        // Cartes catégories
-        cardResultatsLab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(page_dossier_medical.this, MedicalHistoryTimelineActivity.class);
-                startActivity(intent);
-            }
+        // Carte Historique
+        cardResultatsLab.setOnClickListener(v -> {
+            Intent intent = new Intent(page_dossier_medical.this, MedicalHistoryTimelineActivity.class);
+            startActivity(intent);
         });
-
-        cardHistorique.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(page_dossier_medical.this, PatientMedicalRecordsActivity.class);
-                startActivity(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(page_dossier_medical.this, "Erreur: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        cardMedicaments.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(page_dossier_medical.this, page_medicament.class);
-                startActivity(intent);
-            }
-        });
-
-        cardImagerie.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(page_dossier_medical.this,
-                        "Rapports d'Imagerie", Toast.LENGTH_SHORT).show();
-                // TODO: Ouvrir page imagerie
-            }
-        });
-
-        // Cartes résultats individuels - Load from database
-        loadRecentTestResults();
     }
 }
