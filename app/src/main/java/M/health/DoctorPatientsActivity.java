@@ -114,7 +114,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
             patients.add(patient);
 
             String bloodType = patient.bloodType != null ? patient.bloodType : "N/A";
-            String patientDisplay = String.format("%-20s | %-8s | Actions",
+            String patientDisplay = String.format("%-20s | %-8s",
                     patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
                     bloodType);
             patientStrings.add(patientDisplay);
@@ -170,7 +170,7 @@ public class DoctorPatientsActivity extends AppCompatActivity {
             patients.add(patient);
 
             String bloodType = patient.bloodType != null ? patient.bloodType : "N/A";
-            String patientDisplay = String.format("%-20s | %-8s | Actions",
+            String patientDisplay = String.format("%-20s | %-8s",
                     patient.fullName.length() > 18 ? patient.fullName.substring(0, 18) + ".." : patient.fullName,
                     bloodType);
             patientStrings.add(patientDisplay);

@@ -112,7 +112,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
             );
             prescriptions.add(prescription);
 
-            String prescriptionDisplay = String.format("%-18s | %-12s | Actions",
+            String prescriptionDisplay = String.format("%-18s | %-12s",
                     prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
                     prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
             prescriptionStrings.add(prescriptionDisplay);
@@ -225,7 +225,7 @@ public class DoctorPrescriptionsActivity extends AppCompatActivity {
             );
             prescriptions.add(prescription);
 
-            String prescriptionDisplay = String.format("%-18s | %-12s | Actions",
+            String prescriptionDisplay = String.format("%-18s | %-12s",
                     prescription.patientName.length() > 16 ? prescription.patientName.substring(0, 16) + ".." : prescription.patientName,
                     prescription.medication.length() > 10 ? prescription.medication.substring(0, 10) + ".." : prescription.medication);
             prescriptionStrings.add(prescriptionDisplay);

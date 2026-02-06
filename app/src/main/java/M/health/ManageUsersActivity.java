@@ -71,7 +71,7 @@ public class ManageUsersActivity extends AppCompatActivity {
             users.add(user);
             
             String roleDisplay = getRoleDisplay(user.role);
-            String userDisplay = String.format("%-20s | %-10s | Actions", 
+            String userDisplay = String.format("%-20s | %-10s", 
                 user.fullName.length() > 18 ? user.fullName.substring(0, 18) + ".." : user.fullName,
                 roleDisplay);
             userStrings.add(userDisplay);
@@ -159,7 +159,7 @@ public class ManageUsersActivity extends AppCompatActivity {
             users.add(user);
             
             String roleDisplay = getRoleDisplay(user.role);
-            String userDisplay = String.format("%-20s | %-10s | Actions", 
+            String userDisplay = String.format("%-20s | %-10s", 
                 user.fullName.length() > 18 ? user.fullName.substring(0, 18) + ".." : user.fullName,
                 roleDisplay);
             userStrings.add(userDisplay);
