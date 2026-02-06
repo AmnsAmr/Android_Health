@@ -33,7 +33,7 @@ public class UIHelper {
         }
         
         if (tvUserInfo != null) {
-            tvUserInfo.setText("ID: " + currentUser.id);
+            tvUserInfo.setVisibility(View.GONE);
         }
 
         if (btnSettings != null) {

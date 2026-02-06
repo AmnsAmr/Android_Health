@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,7 +98,7 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
         // Setup header
         ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
         ((TextView) findViewById(R.id.tvUserRole)).setText("Secrétaire Médicale");
-        ((TextView) findViewById(R.id.tvUserInfo)).setText("ID: " + authManager.getUserId());
+        findViewById(R.id.tvUserInfo).setVisibility(View.GONE);
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnSignOut).setOnClickListener(v -> logout());
 

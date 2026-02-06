@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,7 +42,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         // Setup header
         ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
         ((TextView) findViewById(R.id.tvUserRole)).setText("Médecin");
-        ((TextView) findViewById(R.id.tvUserInfo)).setText("ID: " + doctorId);
+        findViewById(R.id.tvUserInfo).setVisibility(View.GONE);
         findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         findViewById(R.id.btnSignOut).setOnClickListener(v -> {
             authManager.logout();
