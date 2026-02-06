@@ -1,7 +1,7 @@
 package M.health;
 
 import android.content.ContentValues;
-import android.content.Intent; // Added import
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import java.util.List;
 
 public class DoctorPatientsActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
-    private AuthManager authManager; // Added AuthManager
+    private AuthManager authManager;
     private ListView patientsListView;
     private ArrayAdapter<String> adapter;
     private int doctorId;
@@ -25,15 +25,13 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         dbHelper = new DatabaseHelper(this);
-        authManager = AuthManager.getInstance(this); // Initialize AuthManager
+        authManager = AuthManager.getInstance(this);
 
-        // 1. Validate Session
         if (!authManager.isLoggedIn() || !authManager.validateSession()) {
             redirectToLogin();
             return;
         }
 
-        // 2. Validate Permission
         if (!authManager.hasPermission("doctor_view_patients")) {
             Toast.makeText(this, "Accès refusé: Permissions insuffisantes", Toast.LENGTH_SHORT).show();
             finish();
@@ -42,7 +40,6 @@ public class DoctorPatientsActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_doctor_patients);
 
-        // 3. Get Doctor ID from Session (Secure) instead of Intent
         doctorId = authManager.getUserId();
 
         patientsListView = findViewById(R.id.patientsListView);
@@ -63,7 +60,6 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         loadStatistics();
     }
 
-    // Added Session Management Helper
     private void redirectToLogin() {
         Toast.makeText(this, "Session expirée", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, LoginActivity.class);
@@ -72,30 +68,40 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         finish();
     }
 
-    // Added onResume to re-validate session if app is resumed
     @Override
     protected void onResume() {
         super.onResume();
-        if (!authManager.isLoggedIn() || !authManager.validateSession()) {
-            redirectToLogin();
-            return;
+        if (authManager.isLoggedIn()) {
+            loadPatients();
+            loadStatistics();
         }
-        // Optional: reload data to keep it fresh
-        loadPatients();
-        loadStatistics();
     }
 
     private void loadPatients() {
         patients.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        Cursor cursor = db.rawQuery(
-                "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
-                        "FROM users u " +
-                        "JOIN patients p ON u.id = p.user_id " +
-                        "JOIN appointments a ON u.id = a.patient_id " +
-                        "WHERE a.doctor_id = ? AND u.role = 'patient' ORDER BY u.full_name",
-                new String[]{String.valueOf(doctorId)});
+        // IMPROVED QUERY:
+        // 1. Uses LEFT JOIN on patients table (so patients without DOB/BloodType still show up).
+        // 2. Checks Appointments OR Medical Records OR Prescriptions OR Test Results.
+        String query = "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
+                "FROM users u " +
+                "LEFT JOIN patients p ON u.id = p.user_id " +
+                "WHERE u.role = 'patient' " +
+                "AND (" +
+                "   EXISTS (SELECT 1 FROM appointments WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM medical_records WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM prescriptions WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM test_results WHERE patient_id = u.id AND doctor_id = ?) " +
+                ") " +
+                "ORDER BY u.full_name";
+
+        // We pass the doctorId 4 times for the 4 placeholders (?)
+        String dId = String.valueOf(doctorId);
+        Cursor cursor = db.rawQuery(query, new String[]{dId, dId, dId, dId});
 
         List<String> patientStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
@@ -129,58 +135,29 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         patientsListView.setAdapter(adapter);
     }
 
-    private void loadStatistics() {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-        // Total patients for this doctor
-        Cursor cursor = db.rawQuery(
-                "SELECT COUNT(DISTINCT patient_id) FROM appointments WHERE doctor_id = ?",
-                new String[]{String.valueOf(doctorId)});
-        if (cursor.moveToFirst()) {
-            totalPatientsText.setText(String.valueOf(cursor.getInt(0)));
-        }
-        cursor.close();
-
-        // Total medical records by this doctor
-        cursor = db.rawQuery(
-                "SELECT COUNT(*) FROM medical_records WHERE doctor_id = ?",
-                new String[]{String.valueOf(doctorId)});
-        if (cursor.moveToFirst()) {
-            recordsCountText.setText(String.valueOf(cursor.getInt(0)));
-        }
-        cursor.close();
-    }
-
-    private void showSearchDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Rechercher Patient");
-
-        EditText searchEdit = new EditText(this);
-        searchEdit.setHint("Nom du patient");
-        builder.setView(searchEdit);
-
-        builder.setPositiveButton("Rechercher", (dialog, which) -> {
-            String query = searchEdit.getText().toString();
-            if (!query.isEmpty()) {
-                searchPatients(query);
-            }
-        });
-        builder.setNegativeButton("Tout afficher", (dialog, which) -> loadPatients());
-        builder.show();
-    }
-
-    private void searchPatients(String query) {
+    private void searchPatients(String searchQuery) {
         patients.clear();
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        Cursor cursor = db.rawQuery(
-                "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
-                        "FROM users u " +
-                        "JOIN patients p ON u.id = p.user_id " +
-                        "JOIN appointments a ON u.id = a.patient_id " +
-                        "WHERE a.doctor_id = ? AND u.role = 'patient' AND u.full_name LIKE ? " +
-                        "ORDER BY u.full_name",
-                new String[]{String.valueOf(doctorId), "%" + query + "%"});
+        // Same improved logic, but with name filtering
+        String query = "SELECT DISTINCT u.id, u.full_name, p.date_of_birth, p.blood_type " +
+                "FROM users u " +
+                "LEFT JOIN patients p ON u.id = p.user_id " +
+                "WHERE u.role = 'patient' " +
+                "AND u.full_name LIKE ? " +
+                "AND (" +
+                "   EXISTS (SELECT 1 FROM appointments WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM medical_records WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM prescriptions WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR " +
+                "   EXISTS (SELECT 1 FROM test_results WHERE patient_id = u.id AND doctor_id = ?) " +
+                ") " +
+                "ORDER BY u.full_name";
+
+        String dId = String.valueOf(doctorId);
+        Cursor cursor = db.rawQuery(query, new String[]{"%" + searchQuery + "%", dId, dId, dId, dId});
 
         List<String> patientStrings = new ArrayList<>();
         while (cursor.moveToNext()) {
@@ -216,6 +193,50 @@ public class DoctorPatientsActivity extends AppCompatActivity {
         if (patients.isEmpty()) {
             Toast.makeText(this, "Aucun patient trouvé", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void loadStatistics() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Count unique patients connected to this doctor via ANY method
+        String countQuery = "SELECT COUNT(DISTINCT u.id) FROM users u " +
+                "WHERE u.role = 'patient' AND (" +
+                "   EXISTS (SELECT 1 FROM appointments WHERE patient_id = u.id AND doctor_id = ?) " +
+                "   OR EXISTS (SELECT 1 FROM medical_records WHERE patient_id = u.id AND doctor_id = ?) " +
+                ")";
+
+        Cursor cursor = db.rawQuery(countQuery, new String[]{String.valueOf(doctorId), String.valueOf(doctorId)});
+        if (cursor.moveToFirst()) {
+            totalPatientsText.setText(String.valueOf(cursor.getInt(0)));
+        }
+        cursor.close();
+
+        // Total medical records by this doctor
+        cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM medical_records WHERE doctor_id = ?",
+                new String[]{String.valueOf(doctorId)});
+        if (cursor.moveToFirst()) {
+            recordsCountText.setText(String.valueOf(cursor.getInt(0)));
+        }
+        cursor.close();
+    }
+
+    private void showSearchDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Rechercher Patient");
+
+        EditText searchEdit = new EditText(this);
+        searchEdit.setHint("Nom du patient");
+        builder.setView(searchEdit);
+
+        builder.setPositiveButton("Rechercher", (dialog, which) -> {
+            String query = searchEdit.getText().toString();
+            if (!query.isEmpty()) {
+                searchPatients(query);
+            }
+        });
+        builder.setNegativeButton("Tout afficher", (dialog, which) -> loadPatients());
+        builder.show();
     }
 
     private void showAddTestResultDialog() {
@@ -451,7 +472,6 @@ public class DoctorPatientsActivity extends AppCompatActivity {
     private void showEditTestResultDialog(Patient patient) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // Get test results for this patient
         Cursor cursor = db.rawQuery(
                 "SELECT id, test_name, result FROM test_results " +
                         "WHERE patient_id = ? AND doctor_id = ? ORDER BY test_date DESC",
