@@ -14,9 +14,7 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="center_vertical"
-        android:background="@color/white"
-        android:padding="8dp"
-        android:src="@drawable/ic_medical_cross"
+        android:src="@drawable/ic_header_logo"
         tools:ignore="ContentDescription" />
 
     <LinearLayout

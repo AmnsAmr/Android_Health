@@ -96,11 +96,8 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
         cardUrgentRequests = findViewById(R.id.cardUrgentRequests);
 
         // Setup header
-        ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
-        ((TextView) findViewById(R.id.tvUserRole)).setText("Secrétaire Médicale");
-        findViewById(R.id.tvUserInfo).setVisibility(View.GONE);
-        findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-        findViewById(R.id.btnSignOut).setOnClickListener(v -> logout());
+        View headerLayout = findViewById(R.id.headerLayout);
+        UIHelper.setupUserProfileHeader(this, headerLayout, authManager);
 
         // Setup RecyclerView
         rvTodayAppointments.setLayoutManager(new LinearLayoutManager(this));

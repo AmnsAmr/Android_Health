@@ -40,14 +40,8 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         doctorId = authManager.getUserId();
 
         // Setup header
-        ((TextView) findViewById(R.id.tvUserName)).setText(authManager.getCurrentUser().fullName);
-        ((TextView) findViewById(R.id.tvUserRole)).setText("Médecin");
-        findViewById(R.id.tvUserInfo).setVisibility(View.GONE);
-        findViewById(R.id.btnSettings).setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-        findViewById(R.id.btnSignOut).setOnClickListener(v -> {
-            authManager.logout();
-            redirectToLogin();
-        });
+        View headerLayout = findViewById(R.id.headerLayout);
+        UIHelper.setupUserProfileHeader(this, headerLayout, authManager);
 
         doctorNameText = findViewById(R.id.tvDoctorName);
         doctorSpecialtyText = findViewById(R.id.tvDoctorSpecialty);

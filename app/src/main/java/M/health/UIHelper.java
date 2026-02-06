@@ -55,8 +55,8 @@ public class UIHelper {
 
         // Set user avatar based on role
         if (ivUserAvatar != null) {
-            // You can customize avatar based on role or user preferences
-            ivUserAvatar.setImageResource(R.mipmap.ic_launcher);
+            int avatarRes = getAvatarForRole(currentUser.role);
+            ivUserAvatar.setImageResource(avatarRes);
         }
     }
 
@@ -81,6 +81,16 @@ public class UIHelper {
             case "patient": return "Patient";
             case "secretary": return "Secrétaire";
             default: return role;
+        }
+    }
+
+    private static int getAvatarForRole(String role) {
+        switch (role) {
+            case "admin": return R.drawable.avatar_admin;
+            case "doctor": return R.drawable.avatar_doctor;
+            case "patient": return R.drawable.avatar_patient;
+            case "secretary": return R.drawable.avatar_secretary;
+            default: return R.drawable.ic_header_logo;
         }
     }
 
