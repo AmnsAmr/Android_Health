@@ -122,7 +122,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@mipmap/ic_launcher"
+                        android:src="@drawable/ic_medical_records"
                         android:layout_marginBottom="12dp"
                         tools:ignore="ContentDescription" />
 
@@ -167,7 +167,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@mipmap/ic_launcher"
+                        android:src="@drawable/ic_appointment"
                         android:layout_marginBottom="12dp"
                         tools:ignore="ContentDescription" />
 
@@ -212,7 +212,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@mipmap/ic_launcher"
+                        android:src="@drawable/ic_medication"
                         android:layout_marginBottom="12dp"
                         tools:ignore="ContentDescription" />
 
@@ -257,7 +257,7 @@
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@mipmap/ic_launcher"
+                        android:src="@drawable/ic_message"
                         android:layout_marginBottom="12dp"
                         tools:ignore="ContentDescription" />
 

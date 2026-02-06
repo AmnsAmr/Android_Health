@@ -5,10 +5,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 public class AdminDashboardActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
@@ -41,8 +41,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         View userProfileHeader = findViewById(R.id.userProfileHeader);
         UIHelper.setupUserProfileHeader(this, userProfileHeader, authManager);
 
-        LinearLayout manageUsersBtn = findViewById(R.id.manageUsersBtn);
-        LinearLayout managePatientsBtn = findViewById(R.id.managePatientsBtn);
+        CardView manageUsersBtn = findViewById(R.id.manageUsersBtn);
+        CardView managePatientsBtn = findViewById(R.id.managePatientsBtn);
 
         manageUsersBtn.setOnClickListener(v -> {
             if (authManager.hasPermission("admin_manage_users")) {
@@ -60,7 +60,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayout viewTablesBtn = findViewById(R.id.viewTablesBtn);
+        CardView viewTablesBtn = findViewById(R.id.viewTablesBtn);
         viewTablesBtn.setOnClickListener(v -> {
             if (authManager.hasPermission("admin_view_all_data")) {
                 startActivity(new Intent(this, ViewTablesActivity.class));
@@ -69,7 +69,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayout systemMonitoringBtn = findViewById(R.id.systemMonitoringBtn);
+        CardView systemMonitoringBtn = findViewById(R.id.systemMonitoringBtn);
         systemMonitoringBtn.setOnClickListener(v -> {
             if (authManager.hasPermission("admin_view_all_data")) {
                 startActivity(new Intent(this, SystemMonitoringActivity.class));

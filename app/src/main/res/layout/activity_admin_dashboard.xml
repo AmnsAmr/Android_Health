@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_background">
+    android:background="@color/background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,210 +15,260 @@
             android:id="@+id/userProfileHeader"
             layout="@layout/layout_user_profile_header" />
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:id="@+id/statsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="16dp"
-            android:layout_margin="16dp">
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Statistiques"
-                android:textColor="@color/black"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <TextView
-                android:id="@+id/statsText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Chargement des statistiques..."
-                android:textSize="14sp"
-                android:textColor="@color/Grey" />
-        </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Statistiques"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/statsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Chargement des statistiques..."
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Administration"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/manageUsersBtn"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="16dp"
-                android:layout_marginBottom="12dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Gérer les Utilisateurs"
-                        android:textColor="@color/black"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_admin"
+                        tools:ignore="ContentDescription" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Ajouter, modifier, supprimer"
-                        android:textColor="@color/Grey"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gérer les Utilisateurs"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ajouter, modifier, supprimer"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/managePatientsBtn"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="16dp"
-                android:layout_marginBottom="12dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Gérer les Patients"
-                        android:textColor="@color/black"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_patients"
+                        tools:ignore="ContentDescription" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Consulter les dossiers"
-                        android:textColor="@color/Grey"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gérer les Patients"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Consulter les dossiers"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/viewTablesBtn"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="16dp"
-                android:layout_marginBottom="12dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Voir Tables DB"
-                        android:textColor="@color/black"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_database"
+                        tools:ignore="ContentDescription" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Base de données"
-                        android:textColor="@color/Grey"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Voir Tables DB"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Base de données"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/systemMonitoringBtn"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="16dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                android:foreground="?attr/selectableItemBackground">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Monitoring Système"
-                        android:textColor="@color/black"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_monitoring"
+                        tools:ignore="ContentDescription" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Métriques et performances"
-                        android:textColor="@color/Grey"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Monitoring Système"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Métriques et performances"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

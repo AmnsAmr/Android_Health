@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 public class DoctorDashboardActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
@@ -52,10 +52,10 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         doctorSpecialtyText = findViewById(R.id.tvDoctorSpecialty);
         statsText = findViewById(R.id.statsText);
 
-        LinearLayout cardPatients = findViewById(R.id.cardPatients);
-        LinearLayout cardAppointments = findViewById(R.id.cardAppointments);
-        LinearLayout cardMedicalRecords = findViewById(R.id.cardMedicalRecords);
-        LinearLayout cardPrescriptions = findViewById(R.id.cardPrescriptions);
+        CardView cardPatients = findViewById(R.id.cardPatients);
+        CardView cardAppointments = findViewById(R.id.cardAppointments);
+        CardView cardMedicalRecords = findViewById(R.id.cardMedicalRecords);
+        CardView cardPrescriptions = findViewById(R.id.cardPrescriptions);
 
         cardPatients.setOnClickListener(v -> {
             if (authManager.hasPermission("doctor_view_patients")) {
@@ -89,7 +89,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
             }
         });
 
-        LinearLayout cardMessages = findViewById(R.id.cardMessages);
+        CardView cardMessages = findViewById(R.id.cardMessages);
         cardMessages.setOnClickListener(v -> startActivity(new Intent(this, DoctorMessagesActivity.class)));
         
         // DEBUG: Add long click to open diagnostic

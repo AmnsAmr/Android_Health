@@ -5,11 +5,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,10 +30,10 @@ public class SecretaryDashboardActivity extends AppCompatActivity {
     private TextView tvUrgentRequestsCount;
     private RecyclerView rvTodayAppointments;
 
-    private LinearLayout cardManageAppointments;
-    private LinearLayout cardViewPatients;
-    private LinearLayout cardDoctorSchedules;
-    private LinearLayout cardUrgentRequests;
+    private CardView cardManageAppointments;
+    private CardView cardViewPatients;
+    private CardView cardDoctorSchedules;
+    private CardView cardUrgentRequests;
 
     private AppointmentAdapter appointmentAdapter;
     private List<Appointment> todayAppointments;

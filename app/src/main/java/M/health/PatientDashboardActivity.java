@@ -7,11 +7,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
@@ -20,11 +20,11 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
     // UI Components
     private TextView tvNextApptDoctor, tvNextApptSpecialty, tvNextApptDate;
-    private LinearLayout cardNextAppointment;
-    private LinearLayout cardRdv;
-    private LinearLayout cardDossier;
-    private LinearLayout cardMeds;
-    private LinearLayout cardMessages;
+    private CardView cardNextAppointment;
+    private CardView cardRdv;
+    private CardView cardDossier;
+    private CardView cardMeds;
+    private CardView cardMessages;
     private Button btnEditRdv;
 
     @Override
