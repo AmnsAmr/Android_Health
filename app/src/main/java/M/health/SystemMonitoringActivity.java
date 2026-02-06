@@ -12,7 +12,7 @@ public class SystemMonitoringActivity extends AppCompatActivity {
     private AuthManager authManager;
     
     private TextView tvTotalUsers, tvActiveUsers, tvTotalAppointments, tvTodayAppointments;
-    private TextView tvTotalMessages, tvUrgentMessages, tvPendingRefills, tvSystemHealth;
+    private TextView tvTotalMessages, tvUrgentMessages, tvPendingRefills;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +42,6 @@ public class SystemMonitoringActivity extends AppCompatActivity {
         tvTotalMessages = findViewById(R.id.tvTotalMessages);
         tvUrgentMessages = findViewById(R.id.tvUrgentMessages);
         tvPendingRefills = findViewById(R.id.tvPendingRefills);
-        tvSystemHealth = findViewById(R.id.tvSystemHealth);
     }
 
     private void loadSystemMetrics() {
@@ -93,40 +92,6 @@ public class SystemMonitoringActivity extends AppCompatActivity {
             tvPendingRefills.setText(String.valueOf(cursor.getInt(0)));
         }
         cursor.close();
-        
-        // System health (simple calculation)
-        calculateSystemHealth();
-    }
-
-    private void calculateSystemHealth() {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
-        // Simple health calculation based on activity
-        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM users WHERE last_login > datetime('now', '-7 days')", null);
-        int activeLastWeek = 0;
-        if (cursor.moveToFirst()) {
-            activeLastWeek = cursor.getInt(0);
-        }
-        cursor.close();
-        
-        cursor = db.rawQuery("SELECT COUNT(*) FROM users WHERE is_active = 1", null);
-        int totalActive = 0;
-        if (cursor.moveToFirst()) {
-            totalActive = cursor.getInt(0);
-        }
-        cursor.close();
-        
-        int healthPercentage = totalActive > 0 ? (activeLastWeek * 100) / totalActive : 0;
-        String healthStatus = healthPercentage > 70 ? "Excellent" : 
-                             healthPercentage > 50 ? "Bon" : 
-                             healthPercentage > 30 ? "Moyen" : "Faible";
-        
-        tvSystemHealth.setText(healthStatus + " (" + healthPercentage + "%)");
-        
-        // Color code the health status
-        int color = healthPercentage > 70 ? 0xFF4CAF50 : 
-                   healthPercentage > 50 ? 0xFFFF9800 : 0xFFE74C3C;
-        tvSystemHealth.setTextColor(color);
     }
 
     @Override
