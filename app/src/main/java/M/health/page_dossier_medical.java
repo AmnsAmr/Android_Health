@@ -99,7 +99,6 @@ public class page_dossier_medical extends AppCompatActivity {
         tvPrescriptionInstructions = findViewById(R.id.tvPrescriptionInstructions);
         tvPrescriptionDate = findViewById(R.id.tvPrescriptionDate);
         tvNoPrescription = findViewById(R.id.tvNoPrescription);
-
         // Lab Result Cards
         cardResultat1 = findViewById(R.id.cardResultat1);
         cardResultat2 = findViewById(R.id.cardResultat2);
