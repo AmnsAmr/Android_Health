@@ -3,19 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/userProfileHeader"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:background="#2196F3"
+    android:layout_height="wrap_content"
+    android:background="@color/primary"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="20dp"
+    android:elevation="4dp">
 
     <ImageView
         android:id="@+id/ivUserAvatar"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_gravity="center_vertical"
-        android:background="@android:color/white"
+        android:background="@color/white"
         android:padding="8dp"
-        android:src="@mipmap/ic_launcher"
+        android:src="@drawable/ic_medical_cross"
         tools:ignore="ContentDescription" />
 
     <LinearLayout
@@ -24,14 +25,15 @@
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingStart="12dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <TextView
             android:id="@+id/tvUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="User Name"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -40,16 +42,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="Patient"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            android:textColor="@color/white"
+            android:alpha="0.9"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp" />
 
         <TextView
             android:id="@+id/tvUserInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="ID: 12345"
-            android:textColor="@android:color/white"
-            android:textSize="12sp" />
+            android:textColor="@color/white"
+            android:alpha="0.8"
+            android:textSize="12sp"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -60,29 +66,27 @@
 
         <ImageView
             android:id="@+id/btnSettings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_gravity="center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_preferences"
-            android:tint="@android:color/white"
+            android:padding="10dp"
+            android:src="@drawable/ic_settings"
             tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/btnSignOut"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@android:color/white"
+            android:padding="10dp"
+            android:src="@drawable/ic_logout"
             tools:ignore="ContentDescription" />
 
     </LinearLayout>
