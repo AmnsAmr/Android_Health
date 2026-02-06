@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F2F5F9">
+    android:background="@color/background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,224 +15,278 @@
             android:id="@+id/userProfileHeader"
             layout="@layout/layout_user_profile_header" />
 
+        <!-- Next Appointment Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardRdvDoctor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:backgroundTint="@color/primary">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Prochain Rendez-vous"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:alpha="0.9"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvNextApptDoctor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="Dr. Rachid Bennani"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvNextApptSpecialty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="Cardiologue"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:alpha="0.9"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvNextApptDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:text="Lundi 02 Décembre 2028 - 14:30"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/accent"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnEditRdv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Modifier"
+                    android:textColor="@color/primary"
+                    android:background="@color/white"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Quick Actions Grid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accès Rapide"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp" />
+
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="2"
-            android:padding="12dp">
+            android:padding="8dp">
 
-            <LinearLayout
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cardDossier"
                 android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_margin="6dp"
+                android:layout_height="140dp"
+                android:layout_margin="8dp"
                 android:layout_columnWeight="1"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center"
-                android:orientation="vertical"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="12dp">
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@color/surface">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Dossier Médical"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:layout_marginBottom="12dp"
+                        tools:ignore="ContentDescription" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Historique &amp; Résultats"
-                    android:textColor="@color/Grey"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dossier Médical"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:gravity="center" />
 
-            <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Historique"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cardRdv"
                 android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_margin="6dp"
+                android:layout_height="140dp"
+                android:layout_margin="8dp"
                 android:layout_columnWeight="1"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center"
-                android:orientation="vertical"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="12dp">
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@color/surface">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Rendez-vous"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:layout_marginBottom="12dp"
+                        tools:ignore="ContentDescription" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Planifier &amp; Gérer"
-                    android:textColor="@color/Grey"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rendez-vous"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:gravity="center" />
 
-            <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Planifier"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cardMeds"
                 android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_margin="6dp"
+                android:layout_height="140dp"
+                android:layout_margin="8dp"
                 android:layout_columnWeight="1"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center"
-                android:orientation="vertical"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="12dp">
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@color/surface">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Médicaments"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:layout_marginBottom="12dp"
+                        tools:ignore="ContentDescription" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ordonnances"
-                    android:textColor="@color/Grey"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Médicaments"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:gravity="center" />
 
-            <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ordonnances"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cardMessages"
                 android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_margin="6dp"
+                android:layout_height="140dp"
+                android:layout_margin="8dp"
                 android:layout_columnWeight="1"
-                android:background="@android:color/white"
-                android:elevation="2dp"
-                android:gravity="center"
-                android:orientation="vertical"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="12dp">
+                android:focusable="true">
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@mipmap/ic_launcher"
-                    tools:ignore="ContentDescription" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:background="@color/surface">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Messages"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@mipmap/ic_launcher"
+                        android:layout_marginBottom="12dp"
+                        tools:ignore="ContentDescription" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Contacter médecin"
-                    android:textColor="@color/Grey"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Messages"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Contacter"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
         </GridLayout>
 
+        <!-- Hidden title for compatibility -->
         <TextView
             android:id="@+id/tvNextRdvTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:text="Votre prochain RDV"
-            android:textColor="@color/black"
-            android:lineSpacingExtra="4dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
 
-        <LinearLayout
-            android:id="@+id/cardRdvDoctor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="12dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:id="@+id/tvNextApptDoctor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Dr. Rachid Bennani"
-                android:textStyle="bold"
-                android:lineSpacingExtra="4dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:id="@+id/tvNextApptSpecialty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Cardiologue"
-                android:lineSpacingExtra="4dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:id="@+id/tvNextApptDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Lundi 02 Decembre 2028 - 14:30"
-                android:textStyle="bold"
-                android:textColor="#D32F2F"
-                android:lineSpacingExtra="4dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp" />
-
-            <Button
-                android:id="@+id/btnEditRdv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Modifier"
-                android:lineSpacingExtra="4dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp" />
-        </LinearLayout>
     </LinearLayout>
 </ScrollView>
